@@ -52,13 +52,13 @@ export class ApplicationPublication extends React.Component {
     )
 
     new Promise(async (resolve, reject) => {
-      // const certInfo = await getCertificats('proprietaire')
+      const certInfo = await getCertificats('proprietaire')
       // console.debug("Cert info : %O", certInfo)
-      // const fullchain = splitPEMCerts(certInfo.fullchain)
-      // const clesPrivees = await getClesPrivees('proprietaire')
-      // // console.debug("Certificat chargement signateur transaction\ncerts: %O\ncles: %O", fullchain, clesPrivees)
-      // const signateurTransaction = new SignateurTransactionSubtle(fullchain, clesPrivees.signer)
-      // this.setState({signateurTransaction})
+      const fullchain = splitPEMCerts(certInfo.fullchain)
+      const clesPrivees = await getClesPrivees('proprietaire')
+      // console.debug("Certificat chargement signateur transaction\ncerts: %O\ncles: %O", fullchain, clesPrivees)
+      const signateurTransaction = new SignateurTransactionSubtle(fullchain, clesPrivees.signer)
+      this.setState({signateurTransaction})
     })
 
   }
