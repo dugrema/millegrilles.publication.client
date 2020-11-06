@@ -151,7 +151,7 @@ function Entete(props) {
 
 function Contenu(props) {
   return (
-    <Container>
+    <Container className="main-body">
       {props.page}
     </Container>
   )
