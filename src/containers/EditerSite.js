@@ -73,13 +73,8 @@ export default class EditerSite extends React.Component {
       // Copier languages du site si existant
       languages = this.state.site.languages || []
     }
-    // Dedupe
-    // const dictLanguages = {[language]: true}  // Ajout nouveau language
-    // languages.forEach(item=>{
-    //   dictLanguages[item] = true
-    // })
-    // languages = Object.keys(dictLanguages)
 
+    // Dedupe
     const dictLanguages = {}
     languages = [...languages, language].filter(item=>{
       if(dictLanguages[item]) return false
@@ -263,6 +258,8 @@ function FormInfoSite(props) {
 
       <Languages {...props} />
 
+      <TitreSite languages={props.languages || props.site.languages}/>
+
       <Noeuds noeuds_urls={props.noeuds_urls || props.site.noeuds_urls}
               noeudsDisponibles={props.noeudsDisponibles}
               ajouterNoeud={props.ajouterNoeud}
@@ -333,8 +330,20 @@ function TitreSite(props) {
   return (
     <>
       <h2>Titre</h2>
+      <ChampInputMultilingue languages={props.languages} />
     </>
   )
+}
+
+function ChampInputMultilingue(props) {
+
+  if( ! props.languages ) return ''
+
+  const renderedInput = props.languages.map(langue=>{
+    return <p key={langue}>Langue {langue}</p>
+  })
+
+  return renderedInput
 }
 
 class Noeuds extends React.Component {
@@ -362,9 +371,15 @@ class Noeuds extends React.Component {
     const listeNoeuds = []
     for(const noeudId in noeuds_urls) {
       const listeUrls = noeuds_urls[noeudId]
+      var noeudInfo = null
+      if(this.props.site) {
+        noeudInfo = this.props.site[noeudId]
+      }
       listeNoeuds.push(
         <Noeud key={noeudId}
                noeudId={noeudId}
+               noeudInfo={noeudInfo}
+               noeudsDisponibles={this.props.noeudsDisponibles}
                listeUrls={listeUrls}
                ajouterUrl={this.props.ajouterUrl}
                supprimerUrl={this.props.supprimerUrl} />
@@ -408,6 +423,8 @@ class Noeud extends React.Component {
 
   render() {
 
+    console.debug("RENDER props : %O", this.props)
+
     const listeUrls = this.props.listeUrls
     var renderedUrls = ''
     if(listeUrls) {
@@ -421,10 +438,23 @@ class Noeud extends React.Component {
       })
     }
 
+    var nomNoeud = this.props.noeudId
+    try {
+      if(this.props.noeudsDisponibles) {
+        var noeudInfo = null
+        noeudInfo = this.props.noeudsDisponibles.filter(item=>item.noeud_id===this.props.noeudId)[0]
+        if(noeudInfo && noeudInfo.fqdn_detecte) {
+          nomNoeud = noeudInfo.fqdn_detecte + " (" + this.props.noeudId + ")"
+        }
+      }
+    } catch(err) {
+      console.error("Erreur chargement nom noeud : %O", err)
+    }
+
     return (
       <>
         <Row key={this.props.noeudId}>
-          <Col>Noeud {this.props.noeudId}</Col>
+          <Col>Noeud {nomNoeud}</Col>
         </Row>
         <Row>
           <Col md={6}>
