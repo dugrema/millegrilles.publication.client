@@ -53,7 +53,9 @@ export default class ListeNoeuds extends React.Component {
 
         <Row>
           <Col>
-            <Button variant="secondary" onClick={this.props.creerSite}>Nouveau site</Button>
+            <Button variant="secondary"
+                    onClick={this.props.creerSite}
+                    disabled={!this.props.rootProps.modeProtege}>Nouveau site</Button>
           </Col>
         </Row>
       </>

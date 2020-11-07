@@ -77,10 +77,12 @@ export default class EditerSite extends React.Component {
 
         <Row>
           <Col>
-            <Button onClick={this.sauvegarder}>
+            <Button onClick={this.sauvegarder}
+                    disabled={!this.props.rootProps.modeProtege}>
               Sauvegarder
             </Button>
-            <Button variant="secondary" onClick={this.props.retour}>
+            <Button variant="secondary"
+                    onClick={this.props.retour}>
               Retour
             </Button>
           </Col>
