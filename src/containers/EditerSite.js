@@ -10,7 +10,7 @@ export default class EditerSite extends React.Component {
 
   state = {
     site: '',
-    noeudsPublics: '',
+    noeudsDisponibles: '',
 
     // Champs d'edition a l'ecran
     nom_site: '',
@@ -32,9 +32,9 @@ export default class EditerSite extends React.Component {
       })
     })
 
-    wsa.requeteNoeudsPublics().then(noeudsPublics=>{
-      console.debug("Noeuds disponibles : %O", noeudsPublics)
-      this.setState({noeudsPublics}, _ =>{
+    wsa.requeteNoeudsPublics().then(noeudsDisponibles=>{
+      console.debug("Noeuds disponibles : %O", noeudsDisponibles)
+      this.setState({noeudsDisponibles}, _ =>{
         // Enregistrer evenements
         //wsa.subscribe(routingKeysSite, this.messageRecu, {exchange: '3.protege'})
       })
@@ -218,7 +218,7 @@ function FormInfoSite(props) {
 
       <Languages {...props} />
 
-      <Noeuds noeuds_urls={props.noeuds_urls} />
+      <Noeuds noeuds_urls={props.noeuds_urls} noeudsDisponibles={props.noeudsDisponibles} />
 
     </Form>
   )
@@ -283,27 +283,181 @@ function TitreSite(props) {
   )
 }
 
-function Noeuds(props) {
-  const noeuds_urls = props.noeuds_urls
+class Noeuds extends React.Component {
 
-  const listeNoeuds = []
-  for(const noeudId in noeuds_urls) {
-    const noeudInfo = noeuds_urls[noeudId]
-    listeNoeuds.push(
-      <Noeud key={noeudId} noeudId={noeudId} noeudInfo={noeudInfo} />
+  state = {
+    noeuds_urls: '',
+    noeud_id: '',
+  }
+
+  selectionnerNoeud = event => {
+    const noeud_id = event.currentTarget.value
+    console.debug("Selectionner noeud %s", noeud_id)
+    this.setState({noeud_id})
+  }
+
+  ajouterNoeud = event => {
+    var nouveauNoeud = this.state.noeud_id
+    console.debug("Ajouter noeud %s", nouveauNoeud)
+
+    var noeuds = this.state.noeuds_urls
+    if( ! noeuds ) {
+      noeuds = this.props.noeuds_urls || {}
+    }
+
+    noeuds[nouveauNoeud] = []
+    this.setState({noeuds_urls: noeuds, noeud_id: ''}, _=>{console.debug("Ajout noeud, state : %O", this.state)})
+  }
+
+  ajouterUrl = (noeudId, url) => {
+    console.debug("Ajouter url %s a noeudId %s", url, noeudId)
+    var noeuds_urls = this.state.noeuds_urls || this.props.site.noeuds_urls
+
+    var urls = noeuds_urls[noeudId] || []
+    urls.push(url)
+    noeuds_urls[noeudId] = urls
+
+    this.setState({noeuds_urls})
+  }
+
+  supprimerUrl = (noeudId, url) => {
+    console.debug("Ajouter url %s a noeudId %s", url, noeudId)
+    var noeuds_urls = this.state.noeuds_urls || this.props.site.noeuds_urls
+
+    var urls = noeuds_urls[noeudId] || []
+    urls = urls.filter(item=>item!==url)
+    noeuds_urls[noeudId] = urls
+
+    this.setState({noeuds_urls})
+  }
+
+  render() {
+    const noeuds_urls = this.state.noeuds_urls || this.props.noeuds_urls
+
+    const listeNoeuds = []
+    for(const noeudId in noeuds_urls) {
+      const listeUrls = noeuds_urls[noeudId]
+      listeNoeuds.push(
+        <Noeud key={noeudId}
+               noeudId={noeudId}
+               listeUrls={listeUrls}
+               ajouterUrl={this.ajouterUrl}
+               supprimerUrl={this.supprimerUrl} />
+      )
+    }
+
+    return (
+      <>
+        <h2>Noeuds pour deploiement</h2>
+
+        <NoeudsDisponibles noeuds={this.props.noeudsDisponibles}
+                           selectionnerNoeud={this.selectionnerNoeud}
+                           ajouterNoeud={this.ajouterNoeud}/>
+
+        {listeNoeuds}
+      </>
     )
   }
 
-  return (
-      <>
-        <h2>Noeuds pour deploiement</h2>
-        {listeNoeuds}
-      </>
-  )
 }
 
-function Noeud(props) {
-  return <p>Noeud {props.noeudId}</p>
+class Noeud extends React.Component {
+
+  state = {
+    nouveauUrl: '',
+  }
+
+  ajouterUrl = event => {
+    this.props.ajouterUrl(this.props.noeudId, this.state.nouveauUrl)
+    this.setState({nouveauUrl: ''})
+  }
+
+  supprimerUrl = event => {
+    this.props.supprimerUrl(this.props.noeudId, event.currentTarget.value)
+  }
+
+  changerChamp = event => {
+    const {name, value} = event.currentTarget
+    this.setState({[name]: value})
+  }
+
+  render() {
+
+    const listeUrls = this.props.listeUrls
+    var renderedUrls = ''
+    if(listeUrls) {
+      renderedUrls = listeUrls.map(item=>{
+        return <Button key={item}
+                       variant="secondary"
+                       onClick={this.supprimerUrl}
+                       value={item}>
+                  {item} <i className="fa fa-close"/>
+               </Button>
+      })
+    }
+
+    return (
+      <>
+        <Row key={this.props.noeudId}>
+          <Col>Noeud {this.props.noeudId}</Col>
+        </Row>
+        <Row>
+          <Col md={6}>
+            <InputGroup>
+              <InputGroup.Prepend>
+                <InputGroup.Text>URL</InputGroup.Text>
+              </InputGroup.Prepend>
+              <FormControl name="nouveauUrl" value={this.state.nouveauUrl} onChange={this.changerChamp}/>
+              <InputGroup.Append>
+                <Button variant="outline-secondary" onClick={this.ajouterUrl}>
+                  <i className="fa fa-arrow-right" />
+                </Button>
+              </InputGroup.Append>
+            </InputGroup>
+          </Col>
+          <Col md={6}>
+            {renderedUrls}
+          </Col>
+        </Row>
+      </>
+    )
+  }
+}
+
+function NoeudsDisponibles(props) {
+
+  if( ! props.noeuds ) return ''
+
+  var options = props.noeuds.map(item=>{
+    var label = ''
+    if(item.fqdn_detecte) {
+      label = item.fqdn_detecte + ' (' + item.noeud_id + ')'
+    } else {
+      label = item.noeud_id
+    }
+    return <option key={item.noeud_id} value={item.noeud_id}>{label}</option>
+  })
+
+  return (
+    <>
+      <label htmlFor="noeuds-disponibles">Ajouter noeud pour deployer le site</label>
+      <InputGroup>
+
+        <Form.Control as="select" id="noeuds-disponibles"
+                      onChange={props.selectionnerNoeud}>
+          <option key='selectionner' value=''>Selectionner un nouveau noeud</option>
+          {options}
+        </Form.Control>
+
+        <InputGroup.Append>
+          <Button variant="outline-secondary"
+                  onClick={props.ajouterNoeud}>Ajouter</Button>
+        </InputGroup.Append>
+
+      </InputGroup>
+    </>
+  )
+
 }
 
 function AlertErreur(props) {
