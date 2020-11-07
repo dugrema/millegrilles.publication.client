@@ -12,10 +12,14 @@ export class WebSocketPublication extends WebSocketClient {
     return this.emitBlocking('publication/requeteSite', {site_id: siteId})
   }
 
+  async requeteNoeudsPublics() {
+    return this.emitBlocking('publication/requeteNoeuds', {})
+  }
+
   // Commandes
 
-  async ajouterSite(transaction) {
-    return this.emitBlocking('publication/ajouterSite', transaction)
+  async majSite(transaction) {
+    return this.emitBlocking('publication/majSite', transaction)
   }
 
 }
