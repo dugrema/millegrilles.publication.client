@@ -1,6 +1,11 @@
 import React from 'react'
 import {Row, Col, Button} from 'react-bootstrap'
 
+const routingKeysSite = [
+  'transaction.Publication.*.majSite',
+  'transaction.Publication.majSite',
+]
+
 export default class ListeNoeuds extends React.Component {
 
   state = {
@@ -12,8 +17,30 @@ export default class ListeNoeuds extends React.Component {
     const wsa = this.props.rootProps.websocketApp
     wsa.requeteSites({}).then(sites=>{
       console.debug("Sites charges : %O", sites)
-      this.setState({sites})
+      this.setState({sites}, _=>{
+        // Enregistrer evenements
+        wsa.subscribe(routingKeysSite, this.messageRecu, {exchange: '3.protege'})
+      })
     })
+  }
+
+  componentWillUnmount() {
+    const wsa = this.props.rootProps.websocketApp
+    wsa.unsubscribe(routingKeysSite, this.messageRecu, {exchange: '3.protege'})
+  }
+
+  messageRecu = event => {
+    console.debug("Message MQ recu : %O", event)
+
+    const message = event.message,
+          routingKey = event.routingKey
+    const action = routingKey.split('.').pop()
+
+    // Mapping de l'action
+    if(action === 'majSite') {
+      const sites = majListeSites(message, this.state.sites)
+      this.setState({sites})
+    }
   }
 
   render() {
@@ -26,7 +53,7 @@ export default class ListeNoeuds extends React.Component {
 
         <Row>
           <Col>
-            <Button variant="secondary">Nouveau site</Button>
+            <Button variant="secondary" onClick={this.props.creerSite}>Nouveau site</Button>
           </Col>
         </Row>
       </>
@@ -58,4 +85,26 @@ function AfficherListeSites(props) {
   })
 
   return mapSite
+}
+
+function majListeSites(message, sites) {
+
+  const derniereModification = message['en-tete'].estampille
+  const mappingMessage = {
+    site_id: message.site_id || message['en-tete']['uuid_transaction'],
+    nom_site: message.nom_site,
+    '_mg-derniere-modification': derniereModification,
+  }
+
+  if( ! message.site_id ) {
+    // Nouveau site, on l'ajoute a la liste
+    return [...sites, mappingMessage]
+  }
+
+  // Remplacer site en memoire
+  return sites.map(item=>{
+    if(item.site_id === message.site_id) return mappingMessage  // Remplacer
+    return item  // Aucun changement
+  })
+
 }
