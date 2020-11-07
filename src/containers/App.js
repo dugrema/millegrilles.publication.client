@@ -7,6 +7,9 @@ import {getCertificats, getClesPrivees} from '../components/pkiHelper'
 import {SignateurTransactionSubtle} from 'millegrilles.common/lib/cryptoSubtle'
 import {splitPEMCerts} from 'millegrilles.common/lib/forgecommon'
 
+import ListeSites from './ListeSites'
+import EditerSite from './EditerSite'
+
 import './App.css'
 
 // import manifest from '../../../manifest.build.js'
@@ -30,7 +33,7 @@ export class ApplicationPublication extends React.Component {
 
     signateurTransaction: '',
 
-    page: 'Accueil',
+    siteId: '',  // Site en cours de modification
   }
 
   componentDidMount() {
@@ -67,34 +70,15 @@ export class ApplicationPublication extends React.Component {
     this.setState(info)
   }
 
-  changerPage = eventPage => {
-    // Verifier si event ou page
-    let page
-    var paramsPage = null
-    if(eventPage.currentTarget) {
-      var target = eventPage.currentTarget
-      page = target.value
-      var dataset = target.dataset
-      if(dataset) {
-        paramsPage = {...dataset}
-      }
-    } else {
-      page = eventPage
-    }
-
-    if(page === this.state.page) {
-      // Reset de la page
-      // console.debug("Reset page : %s", page)
-      this.setState({page: '', paramsPage}, ()=>{this.setState({page})})
-    } else {
-      // console.debug("Page : %s", page)
-      this.setState({page, paramsPage})
-    }
+  setSiteId = siteId => {
+    if(siteId.currentTarget) siteId = siteId.currentTarget.value  // Mapper value bouton
+    console.debug("Set site id : %O", siteId)
+    this.setState({siteId})
   }
 
   render() {
 
-    const rootProps = {...this.props, ...this.props.rootProps, ...this.state, manifest, changerPage: this.changerPage}
+    const rootProps = {...this.props, ...this.props.rootProps, ...this.state, manifest, setSiteId: this.setSiteId}
 
     let page;
     if(!this.state.serveurInfo) {
@@ -103,9 +87,15 @@ export class ApplicationPublication extends React.Component {
     } else if(!this.state.websocketApp) {
       // 2. Connecter avec Socket.IO
       page = <p>Attente de connexion</p>
+    } else if(this.state.siteId) {
+      // Editer un site selectionne
+      page = <EditerSite rootProps={rootProps}
+                         siteId={this.state.siteId}
+                         retour={this.setSiteId} />
     } else {
-      // 3. Afficher application
-      page = (<p>Pret</p>)
+      // Afficher la liste des sites
+      page = <ListeSites rootProps={rootProps}
+                         setSiteId={this.setSiteId} />
     }
 
     return page

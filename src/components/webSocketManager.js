@@ -4,11 +4,9 @@ export class WebSocketPublication extends WebSocketClient {
 
   // Requetes
 
-  // async requeteListeNoeuds(params) {
-  //   // console.debug("Requete liste noeuds : %O", params)
-  //   // const domaineAction = 'Topologie.listeNoeuds'
-  //   return emitBlocking('coupdoeil/requeteListeNoeuds', params)
-  // }
+  async requeteSites(params) {
+    return this.emitBlocking('publication/requeteSites', params)
+  }
 
   // Commandes
 
