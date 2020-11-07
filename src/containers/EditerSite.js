@@ -99,6 +99,41 @@ export default class EditerSite extends React.Component {
     this.setState({languages})
   }
 
+  ajouterNoeud = noeudId => {
+    var nouveauNoeud = noeudId
+    console.debug("Ajouter noeud %s", nouveauNoeud)
+
+    var noeuds = this.state.noeuds_urls
+    if( ! noeuds ) {
+      noeuds = this.props.noeuds_urls || {}
+    }
+
+    noeuds[nouveauNoeud] = []
+    this.setState({noeuds_urls: noeuds, noeud_id: ''}, _=>{console.debug("Ajout noeud, state : %O", this.state)})
+  }
+
+  ajouterUrl = (noeudId, url) => {
+    console.debug("Ajouter url %s a noeudId %s", url, noeudId)
+    var noeuds_urls = this.state.noeuds_urls || this.state.site.noeuds_urls
+
+    var urls = noeuds_urls[noeudId] || []
+    urls.push(url)
+    noeuds_urls[noeudId] = urls
+
+    this.setState({noeuds_urls})
+  }
+
+  supprimerUrl = (noeudId, url) => {
+    console.debug("Ajouter url %s a noeudId %s", url, noeudId)
+    var noeuds_urls = this.state.noeuds_urls || this.state.site.noeuds_urls
+
+    var urls = noeuds_urls[noeudId] || []
+    urls = urls.filter(item=>item!==url)
+    noeuds_urls[noeudId] = urls
+
+    this.setState({noeuds_urls})
+  }
+
   sauvegarder = async event => {
     console.debug("Sauvegarder changements formulaire site")
 
@@ -106,7 +141,7 @@ export default class EditerSite extends React.Component {
     const domaineAction = 'Publication.majSite',
           transaction = {}
 
-    const champsFormulaire = ['nom_site', 'languages']
+    const champsFormulaire = ['nom_site', 'languages', 'noeuds_urls']
 
     champsFormulaire.forEach(item=>{
       if(this.state[item]) transaction[item] = this.state[item]
@@ -158,6 +193,9 @@ export default class EditerSite extends React.Component {
         <SectionDonnees changerChamp={this.changerChamp}
                         ajouterLanguage={this.ajouterLanguage}
                         supprimerLanguage={this.supprimerLanguage}
+                        ajouterNoeud={this.ajouterNoeud}
+                        ajouterUrl={this.ajouterUrl}
+                        supprimerUrl={this.supprimerUrl}
                         {...this.state} />
       )
     }
@@ -218,7 +256,11 @@ function FormInfoSite(props) {
 
       <Languages {...props} />
 
-      <Noeuds noeuds_urls={props.noeuds_urls} noeudsDisponibles={props.noeudsDisponibles} />
+      <Noeuds noeuds_urls={props.noeuds_urls || props.site.noeuds_urls}
+              noeudsDisponibles={props.noeudsDisponibles}
+              ajouterNoeud={props.ajouterNoeud}
+              ajouterUrl={props.ajouterUrl}
+              supprimerUrl={props.supprimerUrl} />
 
     </Form>
   )
@@ -286,7 +328,6 @@ function TitreSite(props) {
 class Noeuds extends React.Component {
 
   state = {
-    noeuds_urls: '',
     noeud_id: '',
   }
 
@@ -297,38 +338,10 @@ class Noeuds extends React.Component {
   }
 
   ajouterNoeud = event => {
-    var nouveauNoeud = this.state.noeud_id
-    console.debug("Ajouter noeud %s", nouveauNoeud)
-
-    var noeuds = this.state.noeuds_urls
-    if( ! noeuds ) {
-      noeuds = this.props.noeuds_urls || {}
-    }
-
-    noeuds[nouveauNoeud] = []
-    this.setState({noeuds_urls: noeuds, noeud_id: ''}, _=>{console.debug("Ajout noeud, state : %O", this.state)})
-  }
-
-  ajouterUrl = (noeudId, url) => {
-    console.debug("Ajouter url %s a noeudId %s", url, noeudId)
-    var noeuds_urls = this.state.noeuds_urls || this.props.site.noeuds_urls
-
-    var urls = noeuds_urls[noeudId] || []
-    urls.push(url)
-    noeuds_urls[noeudId] = urls
-
-    this.setState({noeuds_urls})
-  }
-
-  supprimerUrl = (noeudId, url) => {
-    console.debug("Ajouter url %s a noeudId %s", url, noeudId)
-    var noeuds_urls = this.state.noeuds_urls || this.props.site.noeuds_urls
-
-    var urls = noeuds_urls[noeudId] || []
-    urls = urls.filter(item=>item!==url)
-    noeuds_urls[noeudId] = urls
-
-    this.setState({noeuds_urls})
+    var noeudId = this.state.noeud_id
+    console.debug("Ajouter noeud %s", noeudId)
+    this.props.ajouterNoeud(noeudId)
+    this.setState({noeud_id: ''}, _=>{console.debug("Ajout noeud, state : %O", this.state)})
   }
 
   render() {
@@ -341,8 +354,8 @@ class Noeuds extends React.Component {
         <Noeud key={noeudId}
                noeudId={noeudId}
                listeUrls={listeUrls}
-               ajouterUrl={this.ajouterUrl}
-               supprimerUrl={this.supprimerUrl} />
+               ajouterUrl={this.props.ajouterUrl}
+               supprimerUrl={this.props.supprimerUrl} />
       )
     }
 
