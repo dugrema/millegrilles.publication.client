@@ -73,15 +73,22 @@ export default class EditerSite extends React.Component {
       // Copier languages du site si existant
       languages = this.state.site.languages || []
     }
-    const dictLanguages = {[language]: true}  // Ajout nouveau language
-
     // Dedupe
-    languages.forEach(item=>{
+    // const dictLanguages = {[language]: true}  // Ajout nouveau language
+    // languages.forEach(item=>{
+    //   dictLanguages[item] = true
+    // })
+    // languages = Object.keys(dictLanguages)
+
+    const dictLanguages = {}
+    languages = [...languages, language].filter(item=>{
+      if(dictLanguages[item]) return false
       dictLanguages[item] = true
+      return true
     })
 
-    languages = Object.keys(dictLanguages)
     console.debug("Nouvelle liste languages : %O", languages)
+
     this.setState({languages})
   }
 
@@ -295,6 +302,11 @@ class Languages extends React.Component {
     return (
       <>
         <h2>Languages</h2>
+
+        <p>Ajouter les languages sous format ISO 639-1 (fr=francais, en=anglais, es=espagnol)</p>
+
+        <p>La premiere langue dans la liste est celle par defaut pour le site.</p>
+
         <Row>
           <Col md={4}>
             <InputGroup>
