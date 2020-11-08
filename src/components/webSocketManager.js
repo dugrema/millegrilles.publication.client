@@ -22,4 +22,8 @@ export class WebSocketPublication extends WebSocketClient {
     return this.emitBlocking('publication/majSite', transaction)
   }
 
+  async majPost(transaction) {
+    return this.emitBlocking('publication/majPost', transaction)
+  }
+
 }

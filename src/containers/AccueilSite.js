@@ -14,6 +14,9 @@ export default class SectionAccueil extends React.Component {
     postsModifies: '', // Nouveaux posts generes sur la page mais pas encore sauvegardes
                        // key=post_id
                        // value=entree post par langue {fr: 'aaa', en:'bbb'}
+
+    err: '',
+    confirmation: '',
   }
 
   ajouterRow = event => {
@@ -51,6 +54,20 @@ export default class SectionAccueil extends React.Component {
     return post_id
   }
 
+  modifierContenuPost = (post_id, langue, contenu) => {
+    // console.debug("Modifier contenu post %s, %s = %s", post_id, langue, contenu)
+    var post = this.state.postsModifies[post_id] || this.state.posts[post_id]
+    if(!post.html) post.html = {}
+    post.html[langue] = contenu
+
+    var postsModifies = null
+    if( this.state.postsModifies ) postsModifies = {...this.state.postsModifies}
+    else postsModifies = {}
+
+    postsModifies[post_id] = post
+    this.setState({postsModifies})
+  }
+
   sauvegarder = async event => {
 
     const signateurTransaction = this.props.rootProps.signateurTransaction
@@ -79,7 +96,8 @@ export default class SectionAccueil extends React.Component {
           this.setState({confirmation: this.state.confirmation + "\nAjout nouveaux posts avec succes"})
         })
       } catch (err) {
-        this.setState({err})
+        console.error("Erreur : %O", err)
+        this.setState({err: this.state.err + '\n' + err})
       }
     }
 
@@ -87,13 +105,13 @@ export default class SectionAccueil extends React.Component {
 
       const domaineAction = 'Publication.majSite',
             transaction = {
+              site_id: this.props.siteId,
               accueil: this.state.accueilRows,
             }
 
       try {
         await signateurTransaction.preparerTransaction(transaction, domaineAction)
-        const siteId = transaction['en-tete']['uuid_transaction']
-        console.debug("Maj site %s, Transaction a soumettre : %O", siteId, transaction)
+        console.debug("Maj site %s, Transaction a soumettre : %O", this.props.siteId, transaction)
 
         const reponse = await wsa.majSite(transaction)
         console.debug("Reponse maj site : %O", reponse)
@@ -103,25 +121,36 @@ export default class SectionAccueil extends React.Component {
           this.setState({confirmation: this.state.confirmation + "\nMise a jour du site reussie"})
         })
       } catch (err) {
-        this.setState({err})
+        console.error("Erreur : %O", err)
+        this.setState({err: this.state.err + '\n' + err})
       }
 
     }
   }
 
-  render() {
+  clearErreur = _ => {
+    this.setState({err: ''})
+  }
 
+  clearConfirmation = _ => {
+    this.setState({confirmation: ''})
+  }
+
+  render() {
     var rows = this.state.accueilRows || this.props.site.accueil
     var languages = this.props.languages
 
     var rowsRendered = null
     if(rows) {
       rowsRendered = rows.map((item, idx)=>{
-        if(item.post_id) {
+        const post_id = item.post_id
+        if(post_id) {
+          var post = this.state.postsModifies[post_id] || this.state.posts[post_id]
           return (
-            <RowAccueilPost key={idx}
-                            post={item}
-                            languages={languages}/>
+            <RowAccueilPost key={item.post_id}
+                            post={post}
+                            languages={languages}
+                            modifierContenuPost={this.modifierContenuPost} />
           )
         }
         return <p key={idx}>Erreur - entree type inconnu</p>
@@ -131,6 +160,13 @@ export default class SectionAccueil extends React.Component {
     return (
       <>
         <p>Accueil</p>
+
+        <AlertErreur message={this.state.err} close={this.clearErreur}/>
+        <AlertConfirmation message={this.state.confirmation} close={this.clearConfirmation} />
+
+        <Button onClick={this.sauvegarder} disabled={!this.props.rootProps.modeProtege}>
+          Sauvegarder structure
+        </Button>
         {rowsRendered}
         <Row>
           <Col>
@@ -150,22 +186,58 @@ function RowAccueilPost(props) {
 }
 
 class PostItem extends React.Component {
-
   render() {
     return (
       <>
-        <p>Post {this.props.post.post_id}</p>
-        <HtmlMultilingue html={this.props.post.html} />
+        <h3>Post {this.props.post.post_id}</h3>
+        <HtmlMultilingue post={this.props.post}
+                         languages={this.props.languages}
+                         modifierContenuPost={this.props.modifierContenuPost} />
       </>
     )
   }
 }
 
 function HtmlMultilingue(props) {
+  return props.languages.map(langue=>{
+    var contenu = props.post.html[langue]
+    return (
+      <div key={langue}>
+        <Row>
+          <Col md={1}>{langue}</Col>
+          <Col md={11}>
+            <Button variant="secondary">Editer</Button>
+            <Button variant="secondary">Sauvegarder</Button>
+            <Button variant="secondary">Annuler</Button>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <EditeurSummernote value={contenu}
+                               langue={langue}
+                               post_id={props.post.post_id}
+                               onChange={props.modifierContenuPost} />
+          </Col>
+        </Row>
+      </div>
+    )
+  })
+}
+
+function AlertErreur(props) {
   return (
-    <>
-      <p>Html entree</p>
-      <EditeurSummernote />
-    </>
+    <Alert variant="danger" show={props.message !== ''} onClose={props.close} dismissible>
+      <Alert.Heading>Erreur</Alert.Heading>
+      <pre>{props.message}</pre>
+    </Alert>
+  )
+}
+
+function AlertConfirmation(props) {
+  return (
+    <Alert variant="success" show={props.message !== ''} onClose={props.close} dismissible>
+      <Alert.Heading>Succes</Alert.Heading>
+      <pre>{props.message}</pre>
+    </Alert>
   )
 }

@@ -72,7 +72,8 @@ export default class EditerSite extends React.Component {
       <>
         <h1>Editer {nomSite}</h1>
         <NavSections changerSection={this.changerSection} />
-        <SectionCourante changerSection={this.changerSection }
+        <SectionCourante changerSection={this.changerSection}
+                         languages={this.state.site.languages}
                          {...this.state} {...this.props} />
       </>
     )

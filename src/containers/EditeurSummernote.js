@@ -1,5 +1,9 @@
 import React from 'react'
 
+// Note : hack pour importer SummerNote avec dependance jQuery
+//        Importer directement empeche le chargement correct de
+//        window.jQuery = $ dans index.js
+
 export default class EditeurSummernote extends React.Component {
 
   state = {
@@ -13,15 +17,19 @@ export default class EditeurSummernote extends React.Component {
     this.setState({SummernoteDeps})
   }
 
-  onChange(content) {
-    console.log('onChange', content)
+  onChange = content => {
+    const post_id = this.props.post_id,
+          langue = this.props.langue
+
+    this.props.onChange(post_id, langue, content)
   }
 
   render() {
     if(this.state.SummernoteDeps) {
       const SummernoteDeps = this.state.SummernoteDeps
       return (
-        <SummernoteDeps />
+        <SummernoteDeps onChange={this.onChange}
+                        value={this.props.value} />
       )
     }
 
