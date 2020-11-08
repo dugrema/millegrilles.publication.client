@@ -16,6 +16,7 @@ export default class EditerSite extends React.Component {
     nom_site: '',
     languages: '',
     noeuds_urls: '',
+    titre: '',
 
     err: '',
     confirmation: '',
@@ -58,6 +59,16 @@ export default class EditerSite extends React.Component {
   changerChamp = event => {
     const {name, value} = event.currentTarget
     this.setState({[name]: value})
+  }
+
+  changerChampMultilingue = event => {
+    const {name, value} = event.currentTarget
+    var nomLangue = name.split('_')
+    var nomChamp = nomLangue[0]
+    var langue = nomLangue[1]
+
+    var valeur = this.state[nomChamp] || this.state.site[nomChamp]
+    this.setState({[nomChamp]: {...valeur, [langue]: value}})
   }
 
   resetChamps = _ => {
@@ -143,7 +154,7 @@ export default class EditerSite extends React.Component {
     const domaineAction = 'Publication.majSite',
           transaction = {}
 
-    const champsFormulaire = ['nom_site', 'languages', 'noeuds_urls']
+    const champsFormulaire = ['nom_site', 'languages', 'noeuds_urls', 'titre']
 
     champsFormulaire.forEach(item=>{
       if(this.state[item]) transaction[item] = this.state[item]
@@ -193,6 +204,7 @@ export default class EditerSite extends React.Component {
     if(this.state.site) {
       sectionDonnees = (
         <SectionDonnees changerChamp={this.changerChamp}
+                        changerChampMultilingue={this.changerChampMultilingue}
                         ajouterLanguage={this.ajouterLanguage}
                         supprimerLanguage={this.supprimerLanguage}
                         ajouterNoeud={this.ajouterNoeud}
@@ -258,7 +270,8 @@ function FormInfoSite(props) {
 
       <Languages {...props} />
 
-      <TitreSite languages={props.languages || props.site.languages}/>
+      <TitreSite languages={props.languages || props.site.languages}
+                 changerChampMultilingue={props.changerChampMultilingue} />
 
       <Noeuds noeuds_urls={props.noeuds_urls || props.site.noeuds_urls}
               noeudsDisponibles={props.noeudsDisponibles}
@@ -330,7 +343,13 @@ function TitreSite(props) {
   return (
     <>
       <h2>Titre</h2>
-      <ChampInputMultilingue languages={props.languages} />
+
+      <p>Titre affiche sur le site.</p>
+
+      <ChampInputMultilingue languages={props.languages}
+                             name="titre"
+                             values={props.titre}
+                             changerChamp={props.changerChampMultilingue} />
     </>
   )
 }
@@ -340,7 +359,16 @@ function ChampInputMultilingue(props) {
   if( ! props.languages ) return ''
 
   const renderedInput = props.languages.map(langue=>{
-    return <p key={langue}>Langue {langue}</p>
+    const nomChamp = props.name + '_' + langue
+
+    return (
+      <InputGroup key={langue}>
+        <InputGroup.Prepend>
+          <InputGroup.Text>{langue}</InputGroup.Text>
+        </InputGroup.Prepend>
+        <FormControl name={nomChamp} value={props[nomChamp]} onChange={props.changerChamp}/>
+      </InputGroup>
+    )
   })
 
   return renderedInput
@@ -422,8 +450,6 @@ class Noeud extends React.Component {
   }
 
   render() {
-
-    console.debug("RENDER props : %O", this.props)
 
     const listeUrls = this.props.listeUrls
     var renderedUrls = ''
