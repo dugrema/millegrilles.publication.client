@@ -78,7 +78,7 @@ export class ApplicationPublication extends React.Component {
 
   setSiteId = siteId => {
     if(siteId.currentTarget) siteId = siteId.currentTarget.value  // Mapper value bouton
-    console.debug("Set site id : %O", siteId)
+    // console.debug("Set site id : %O", siteId)
     this.setState({siteId})
   }
 

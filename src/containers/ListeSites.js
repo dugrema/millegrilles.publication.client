@@ -16,7 +16,7 @@ export default class ListeNoeuds extends React.Component {
     // console.debug("Chargement liste des sites, props: %O", this.props)
     const wsa = this.props.rootProps.websocketApp
     wsa.requeteSites({}).then(sites=>{
-      console.debug("Sites charges : %O", sites)
+      // console.debug("Sites charges : %O", sites)
       this.setState({sites}, _=>{
         // Enregistrer evenements
         wsa.subscribe(routingKeysSite, this.messageRecu, {exchange: '3.protege'})

@@ -22,7 +22,7 @@ export default class RichTextEditor extends React.Component {
   }
 
   init = event => {
-    console.debug("Init event : %O", event)
+    // console.debug("Init event : %O", event)
     this.setState({valeur_force_reload: ''})
     if(this.props.init) {
       this.props.init(event)

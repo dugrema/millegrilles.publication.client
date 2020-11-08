@@ -41,7 +41,7 @@ export default class SectionAccueil extends React.Component {
         listePosts.map(item=>{
           posts[item.post_id] = item
         })
-        this.setState({posts}, _=>{console.debug("Post initiales chargees : %O", this.state)})
+        this.setState({posts})
       }
     }
   }
@@ -261,7 +261,7 @@ class PostItem extends React.Component {
 
   render() {
     if(!this.props.post) {
-      console.debug("Post pas charge : %O", this.props)
+      // console.debug("Post pas charge : %O", this.props)
       return <p>!!! pas charge !!!</p>
     }
 
@@ -312,7 +312,9 @@ function HtmlMultilingue(props) {
                            onChange={props.modifierContenuPost} />
       )
     } else {
-      renderingContenu = parse(contenu)
+      if(contenu) {
+        renderingContenu = parse(contenu)
+      }
     }
 
     return (

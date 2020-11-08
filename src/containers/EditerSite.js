@@ -24,7 +24,7 @@ export default class EditerSite extends React.Component {
     // console.debug("Chargement liste des sites, props: %O", this.props)
     const wsa = this.props.rootProps.websocketApp
     wsa.requeteSite(this.props.siteId).then(site=>{
-      console.debug("Site charge : %O", site)
+      // console.debug("Site charge : %O", site)
       this.setState({site}, _ =>{
         // Enregistrer evenements
         wsa.subscribe(routingKeysSite, this.messageRecu, {exchange: '3.protege'})
@@ -32,7 +32,7 @@ export default class EditerSite extends React.Component {
     })
 
     wsa.requeteNoeudsPublics().then(noeudsDisponibles=>{
-      console.debug("Noeuds disponibles : %O", noeudsDisponibles)
+      // console.debug("Noeuds disponibles : %O", noeudsDisponibles)
       this.setState({noeudsDisponibles}, _ =>{
         // Enregistrer evenements
         //wsa.subscribe(routingKeysSite, this.messageRecu, {exchange: '3.protege'})
