@@ -11,15 +11,6 @@ export default class EditerSite extends React.Component {
   state = {
     site: '',
     noeudsDisponibles: '',
-
-    // Champs d'edition a l'ecran
-    nom_site: '',
-    languages: '',
-    noeuds_urls: '',
-    titre: '',
-
-    err: '',
-    confirmation: '',
   }
 
   componentDidMount() {
@@ -40,6 +31,51 @@ export default class EditerSite extends React.Component {
         //wsa.subscribe(routingKeysSite, this.messageRecu, {exchange: '3.protege'})
       })
     })
+  }
+
+  componentWillUnmount() {
+    const wsa = this.props.rootProps.websocketApp
+    wsa.unsubscribe(routingKeysSite, this.messageRecu, {exchange: '3.protege'})
+  }
+
+  messageRecu = event => {
+    console.debug("Message MQ recu : %O", event)
+
+    const message = event.message,
+          routingKey = event.routingKey
+    const action = routingKey.split('.').pop()
+
+    if(action === 'majSite' && this.props.siteId === message.site_id) {
+      console.debug("Modifier site avec transaction : %O", message)
+      const siteModifie = {...this.state.site, ...message}
+      this.setState({site: siteModifie}, _=>{console.debug("MAJ apres update : %O", this.state)})
+    }
+  }
+
+  render() {
+    const nomSite = this.state.site.nom_site || this.props.siteId
+
+    return (
+      <>
+        <h1>Editer {nomSite}</h1>
+        <InfoSite {...this.state} {...this.props} />
+      </>
+    )
+  }
+
+}
+
+class InfoSite extends React.Component {
+
+  state = {
+    // Champs d'edition a l'ecran
+    nom_site: '',
+    languages: '',
+    noeuds_urls: '',
+    titre: '',
+
+    err: '',
+    confirmation: '',
   }
 
   messageRecu = event => {
@@ -67,7 +103,7 @@ export default class EditerSite extends React.Component {
     var nomChamp = nomLangue[0]
     var langue = nomLangue[1]
 
-    var valeur = this.state[nomChamp] || this.state.site[nomChamp]
+    var valeur = this.state[nomChamp] || this.props.site[nomChamp]
     this.setState({[nomChamp]: {...valeur, [langue]: value}})
   }
 
@@ -82,7 +118,7 @@ export default class EditerSite extends React.Component {
     var languages = this.state.languages
     if(!languages) {
       // Copier languages du site si existant
-      languages = this.state.site.languages || []
+      languages = this.props.site.languages || []
     }
 
     // Dedupe
@@ -103,7 +139,7 @@ export default class EditerSite extends React.Component {
     listeChamps.forEach(item=>{
       var coll = {}
       languages.forEach(lang=>{coll[lang]=''})
-      const valeursExistantes = this.state[item] || this.state.site[item]
+      const valeursExistantes = this.state[item] || this.props.site[item]
       coll = {...coll, ...valeursExistantes}
       valeursMultilingues[item] = coll
     })
@@ -117,7 +153,7 @@ export default class EditerSite extends React.Component {
     var languages = this.state.languages
     if(!languages) {
       // Copier languages du site si existant
-      languages = this.state.site.languages || []
+      languages = this.props.site.languages || []
     }
 
     // Supprimer (filtrer) entree
@@ -140,7 +176,7 @@ export default class EditerSite extends React.Component {
 
   ajouterUrl = (noeudId, url) => {
     console.debug("Ajouter url %s a noeudId %s", url, noeudId)
-    var noeuds_urls = this.state.noeuds_urls || this.state.site.noeuds_urls
+    var noeuds_urls = this.state.noeuds_urls || this.props.site.noeuds_urls
 
     var urls = noeuds_urls[noeudId] || []
     urls.push(url)
@@ -151,7 +187,7 @@ export default class EditerSite extends React.Component {
 
   supprimerUrl = (noeudId, url) => {
     console.debug("Ajouter url %s a noeudId %s", url, noeudId)
-    var noeuds_urls = this.state.noeuds_urls || this.state.site.noeuds_urls
+    var noeuds_urls = this.state.noeuds_urls || this.props.site.noeuds_urls
 
     var urls = noeuds_urls[noeudId] || []
     urls = urls.filter(item=>item!==url)
@@ -211,10 +247,8 @@ export default class EditerSite extends React.Component {
   }
 
   render() {
-    const nomSite = this.state.site.nom_site || this.props.siteId
-
     var sectionDonnees = <ChargementEnCours />
-    if(this.state.site) {
+    if(this.props.site) {
       sectionDonnees = (
         <SectionDonnees changerChamp={this.changerChamp}
                         changerChampMultilingue={this.changerChampMultilingue}
@@ -223,13 +257,14 @@ export default class EditerSite extends React.Component {
                         ajouterNoeud={this.ajouterNoeud}
                         ajouterUrl={this.ajouterUrl}
                         supprimerUrl={this.supprimerUrl}
+                        {...this.props}
                         {...this.state} />
       )
     }
 
     return (
       <>
-        <h1>Editer site {nomSite}</h1>
+        <h2>Identification</h2>
 
         <AlertErreur err={this.state.err} clearErreur={this.clearErreur} />
         <AlertConfirmation confirmation={this.state.confirmation} clearConfirmation={this.clearConfirmation} />
@@ -271,6 +306,11 @@ function SectionDonnees(props) {
 
 function FormInfoSite(props) {
 
+  var nomSite = props.nom_site
+  if(!nomSite && props.site.nom_site) {
+    nomSite = props.site.nom_site
+  }
+
   return (
     <Form>
 
@@ -278,7 +318,7 @@ function FormInfoSite(props) {
         <InputGroup.Prepend>
           <InputGroup.Text>Nom site</InputGroup.Text>
         </InputGroup.Prepend>
-        <FormControl name="nom_site" value={props.nom_site || props.site.nom_site} onChange={props.changerChamp}/>
+        <FormControl name="nom_site" value={nomSite} onChange={props.changerChamp}/>
       </InputGroup>
 
       <Languages {...props} />
