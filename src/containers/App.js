@@ -98,7 +98,7 @@ export class ApplicationPublication extends React.Component {
 
     const wsa = this.state.websocketApp
     try {
-      const reponse = await wsa.ajouterSite(transaction)
+      const reponse = await wsa.majSite(transaction)
       this.setState({siteId})
     } catch (err) {
       this.setState({err})

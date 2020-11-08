@@ -95,7 +95,20 @@ export default class EditerSite extends React.Component {
 
     console.debug("Nouvelle liste languages : %O", languages)
 
-    this.setState({languages})
+    // Initialiser les champs multilingues au besoin
+    const valeursMultilingues = {}
+
+    const listeChamps = ['titre']
+
+    listeChamps.forEach(item=>{
+      var coll = {}
+      languages.forEach(lang=>{coll[lang]=''})
+      const valeursExistantes = this.state[item] || this.state.site[item]
+      coll = {...coll, ...valeursExistantes}
+      valeursMultilingues[item] = coll
+    })
+
+    this.setState({languages, ...valeursMultilingues}, _=>{console.debug("State : %O", this.state)})
   }
 
   supprimerLanguage = language => {
@@ -357,7 +370,7 @@ function TitreSite(props) {
 
 function ChampInputMultilingue(props) {
 
-  if( ! props.languages ) return ''
+  if( ! props.languages || ! props.values ) return ''
 
   const renderedInput = props.languages.map(langue=>{
     const nomChamp = props.name + '_' + langue
