@@ -161,6 +161,35 @@ export default class SectionAccueil extends React.Component {
     this.setState({confirmation: ''})
   }
 
+  editerPost = post_id => {
+    console.debug("Editer post_id %s", post_id)
+    const postExistant = this.state.posts[post_id]
+
+    // Copier valeurs pour la nouvelle transaction, dupliquer post.html
+    var post = {
+      post_id: postExistant.post_id,
+      html: {...postExistant.html}
+    }
+
+    var postsModifies = {}
+    if( this.state.postsModifies ) {
+      postsModifies = {...this.state.postsModifies}
+    }
+
+    postsModifies[post_id] = post  // Note : post a deja ete duplique (post.html)
+    this.setState({postsModifies})
+  }
+
+  annulerEditerPost = post_id => {
+    var postsModifies = {}
+    if( this.state.postsModifies ) {
+      for(const key in this.state.postsModifies) {
+        if(key !== post_id) postsModifies[key] = this.state.postsModifies[key]
+      }
+    }
+    this.setState({postsModifies})
+  }
+
   render() {
     var rows = this.state.accueilRows || this.props.site.accueil
     var languages = this.props.languages
@@ -181,7 +210,9 @@ export default class SectionAccueil extends React.Component {
                             post={post}
                             modifiee={modifiee}
                             languages={languages}
-                            modifierContenuPost={this.modifierContenuPost} />
+                            modifierContenuPost={this.modifierContenuPost}
+                            editer={this.editerPost}
+                            annuler={this.annulerEditerPost} />
           )
         }
         return <p key={idx}>Erreur - entree type inconnu</p>
@@ -218,25 +249,55 @@ function RowAccueilPost(props) {
 
 class PostItem extends React.Component {
 
+  editer = _ => {
+    this.props.editer(this.props.post.post_id)
+  }
+
+  annuler = _ => {
+    this.props.annuler(this.props.post.post_id)
+  }
+
   render() {
     if(!this.props.post) {
       console.debug("Post pas charge : %O", this.props)
       return <p>!!! pas charge !!!</p>
     }
 
+    var bouton = ''
+    if(this.props.modifiee) {
+      bouton = (
+        <Button variant="secondary" onClick={this.annuler}>Annuler</Button>
+      )
+    } else {
+      bouton = <Button variant="secondary" onClick={this.editer}>Editer</Button>
+    }
+
     return (
       <>
         <h3>Post {this.props.post.post_id}</h3>
+        <Row>
+          <Col>{bouton}</Col>
+        </Row>
         <HtmlMultilingue post={this.props.post}
                          modifiee={this.props.modifiee}
                          languages={this.props.languages}
-                         modifierContenuPost={this.props.modifierContenuPost} />
+                         modifierContenuPost={this.props.modifierContenuPost}
+                         editer={this.props.editerPost}
+                         annuler={this.props.annulerEditerPost} />
       </>
     )
   }
 }
 
 function HtmlMultilingue(props) {
+
+  const editer = _ => {
+    props.editer(props.post.post_id)
+  }
+  const annuler = _ => {
+    props.annuler(props.post.post_id)
+  }
+
   return props.languages.map(langue=>{
     var contenu = props.post.html[langue]
 
@@ -255,12 +316,7 @@ function HtmlMultilingue(props) {
     return (
       <div key={langue}>
         <Row>
-          <Col md={1}>{langue}</Col>
-          <Col md={11}>
-            <Button variant="secondary">Editer</Button>
-            <Button variant="secondary">Sauvegarder</Button>
-            <Button variant="secondary">Annuler</Button>
-          </Col>
+          <Col>{langue}</Col>
         </Row>
         <Row><Col>{renderingContenu}</Col></Row>
       </div>
