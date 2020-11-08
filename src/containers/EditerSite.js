@@ -271,6 +271,7 @@ function FormInfoSite(props) {
       <Languages {...props} />
 
       <TitreSite languages={props.languages || props.site.languages}
+                 titre={props.titre || props.site.titre}
                  changerChampMultilingue={props.changerChampMultilingue} />
 
       <Noeuds noeuds_urls={props.noeuds_urls || props.site.noeuds_urls}
@@ -366,7 +367,7 @@ function ChampInputMultilingue(props) {
         <InputGroup.Prepend>
           <InputGroup.Text>{langue}</InputGroup.Text>
         </InputGroup.Prepend>
-        <FormControl name={nomChamp} value={props[nomChamp]} onChange={props.changerChamp}/>
+        <FormControl name={nomChamp} value={props.values[langue]} onChange={props.changerChamp}/>
       </InputGroup>
     )
   })
