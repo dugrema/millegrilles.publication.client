@@ -14,17 +14,16 @@ import 'bootstrap/dist/css/bootstrap.css';
 export default class RichTextEditor extends React.Component {
 
   state = {
-    contenu: 'Init bug'
+    valeur_force_reload: 'Init bug'
   }
 
   onChange = content => {
-    // console.log('onChange', content)
-    // this.setState({contenu: content})
     this.props.onChange(content)
   }
 
   init = event => {
     console.debug("Init event : %O", event)
+    this.setState({valeur_force_reload: ''})
     if(this.props.init) {
       this.props.init(event)
     }
@@ -37,7 +36,7 @@ export default class RichTextEditor extends React.Component {
   render() {
     return (
       <ReactSummernote
-        value={this.state.contenu || this.props.contenu}
+        value={this.state.valeur_force_reload || this.props.value}
         onInit={this.init}
         options={{
           lang: 'fr-FR',

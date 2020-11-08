@@ -26,21 +26,23 @@ export default class SectionAccueil extends React.Component {
 
   async extraireListePosts() {
     const accueilInfo = this.props.site.accueil
-    const listePostIds = []
-    accueilInfo.forEach(item=>{
-      if(item.post_id) listePostIds.push(item.post_id)
-      if(item.post_ids) listePostIds = [...listePostIds, ...item.post_ids]
-    })
-
-    if(listePostIds.length > 0) {
-      const wsa = this.props.rootProps.websocketApp
-      const listePosts = await wsa.requetePosts(listePostIds)
-
-      const posts = {}
-      listePosts.map(item=>{
-        posts[item.post_id] = item
+    if( accueilInfo ) {
+      const listePostIds = []
+      accueilInfo.forEach(item=>{
+        if(item.post_id) listePostIds.push(item.post_id)
+        if(item.post_ids) listePostIds = [...listePostIds, ...item.post_ids]
       })
-      this.setState({posts}, _=>{console.debug("Post initiales chargees : %O", this.state)})
+
+      if(listePostIds.length > 0) {
+        const wsa = this.props.rootProps.websocketApp
+        const listePosts = await wsa.requetePosts(listePostIds)
+
+        const posts = {}
+        listePosts.map(item=>{
+          posts[item.post_id] = item
+        })
+        this.setState({posts}, _=>{console.debug("Post initiales chargees : %O", this.state)})
+      }
     }
   }
 
