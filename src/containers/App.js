@@ -13,6 +13,8 @@ import ListeSites from './ListeSites'
 import EditerSite from './EditerSite'
 
 import './App.css'
+import $ from 'jquery'
+window.jQuery = $
 
 // import manifest from '../../../manifest.build.js'
 var manifestImport = {

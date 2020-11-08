@@ -2,11 +2,15 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'font-awesome/css/font-awesome.min.css';
+
 // import { ApplicationDev } from './AppDev';
+
 import { AppDev } from './dev/AppDev';
 import './components/i18n';
 
 import * as serviceWorker from './serviceWorker';
+
+console.debug("window : %O", window)
 
 ReactDOM.render(<AppDev />, document.getElementById('root'));
 
