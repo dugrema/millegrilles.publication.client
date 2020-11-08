@@ -2,6 +2,7 @@ import React from 'react'
 import {Row, Col, Button, Form, FormControl, InputGroup, Alert, Nav} from 'react-bootstrap'
 import {v4 as uuid4} from 'uuid'
 import EditeurSummernote from './EditeurSummernote'
+import parse from 'html-react-parser'
 
 export default class SectionAccueil extends React.Component {
 
@@ -17,6 +18,30 @@ export default class SectionAccueil extends React.Component {
 
     err: '',
     confirmation: '',
+  }
+
+  componentDidMount() {
+    this.extraireListePosts()  // Charger posts pour l'accueil du site
+  }
+
+  async extraireListePosts() {
+    const accueilInfo = this.props.site.accueil
+    const listePostIds = []
+    accueilInfo.forEach(item=>{
+      if(item.post_id) listePostIds.push(item.post_id)
+      if(item.post_ids) listePostIds = [...listePostIds, ...item.post_ids]
+    })
+
+    if(listePostIds.length > 0) {
+      const wsa = this.props.rootProps.websocketApp
+      const listePosts = await wsa.requetePosts(listePostIds)
+
+      const posts = {}
+      listePosts.map(item=>{
+        posts[item.post_id] = item
+      })
+      this.setState({posts}, _=>{console.debug("Post initiales chargees : %O", this.state)})
+    }
   }
 
   ajouterRow = event => {
@@ -145,10 +170,16 @@ export default class SectionAccueil extends React.Component {
       rowsRendered = rows.map((item, idx)=>{
         const post_id = item.post_id
         if(post_id) {
-          var post = this.state.postsModifies[post_id] || this.state.posts[post_id]
+          var post = this.state.postsModifies[post_id],
+              modifiee = true
+          if(!post) {
+             post = this.state.posts[post_id]
+             modifiee = false
+          }
           return (
             <RowAccueilPost key={item.post_id}
                             post={post}
+                            modifiee={modifiee}
                             languages={languages}
                             modifierContenuPost={this.modifierContenuPost} />
           )
@@ -186,11 +217,18 @@ function RowAccueilPost(props) {
 }
 
 class PostItem extends React.Component {
+
   render() {
+    if(!this.props.post) {
+      console.debug("Post pas charge : %O", this.props)
+      return <p>!!! pas charge !!!</p>
+    }
+
     return (
       <>
         <h3>Post {this.props.post.post_id}</h3>
         <HtmlMultilingue post={this.props.post}
+                         modifiee={this.props.modifiee}
                          languages={this.props.languages}
                          modifierContenuPost={this.props.modifierContenuPost} />
       </>
@@ -201,6 +239,19 @@ class PostItem extends React.Component {
 function HtmlMultilingue(props) {
   return props.languages.map(langue=>{
     var contenu = props.post.html[langue]
+
+    var renderingContenu = ''
+    if(props.modifiee) {
+      renderingContenu = (
+        <EditeurSummernote value={contenu}
+                           langue={langue}
+                           post_id={props.post.post_id}
+                           onChange={props.modifierContenuPost} />
+      )
+    } else {
+      renderingContenu = parse(contenu)
+    }
+
     return (
       <div key={langue}>
         <Row>
@@ -211,14 +262,7 @@ function HtmlMultilingue(props) {
             <Button variant="secondary">Annuler</Button>
           </Col>
         </Row>
-        <Row>
-          <Col>
-            <EditeurSummernote value={contenu}
-                               langue={langue}
-                               post_id={props.post.post_id}
-                               onChange={props.modifierContenuPost} />
-          </Col>
-        </Row>
+        <Row><Col>{renderingContenu}</Col></Row>
       </div>
     )
   })
