@@ -1,5 +1,5 @@
 import React from 'react'
-import {Row, Col, Button, Form, FormControl, InputGroup, Alert, Nav} from 'react-bootstrap'
+import {Row, Col, Button, Form, FormControl, InputGroup, Alert, Nav, Card, CardDeck} from 'react-bootstrap'
 import {v4 as uuid4} from 'uuid'
 import EditeurSummernote from './EditeurSummernote'
 import parse from 'html-react-parser'
@@ -29,30 +29,46 @@ export default class SectionAccueil extends React.Component {
     if( accueilInfo ) {
       const listePostIds = []
       accueilInfo.forEach(item=>{
+        console.debug("Chargement row : %O", item)
         if(item.post_id) listePostIds.push(item.post_id)
         if(item.post_ids) listePostIds = [...listePostIds, ...item.post_ids]
+        if(item.cards) {
+          item.cards.map(card=>{
+            listePostIds.push(card.post_id)
+          })
+        }
       })
+      console.debug("Post ids charges : %O", listePostIds)
 
       if(listePostIds.length > 0) {
         const wsa = this.props.rootProps.websocketApp
         const listePosts = await wsa.requetePosts(listePostIds)
+        console.debug("Reponse chargement posts : %O", listePosts)
 
         const posts = {}
         listePosts.map(item=>{
           posts[item.post_id] = item
         })
-        this.setState({posts})
+        this.setState({posts}, _=>{console.debug("Posts charges : %O", posts)})
       }
     }
   }
 
   ajouterRow = event => {
-    var position = event.currentTarget.value
+    var typeRow = event.currentTarget.value
 
-    var post_id = this.initialiserPost()
+    var post_id = this.initialiserPost(),
+        position = event.currentTarget.dataset.position || ''
 
     // Type row = post
-    var row = {post_id}
+    var row = null
+    if(typeRow === "Post") {
+      row = {post_id}
+    } else if(typeRow === "CardDeck") {
+      row = {layout: "CardDeck", cards: [{post_id}]}
+    } else {
+      throw new Error("Type layout inconnu : " + typeRow)
+    }
 
     var rows = this.state.accueilRows || this.props.site.accueil
     if(!rows) rows = []
@@ -63,6 +79,47 @@ export default class SectionAccueil extends React.Component {
     }
 
     this.setState({accueilRows: rows})
+  }
+
+  ajouterColonne = event => {
+    const idxRow = event.currentTarget.value
+    console.debug("Ajouter colonne sur row %s", idxRow)
+    var post_id = this.initialiserPost()
+    var accueilRows = this.state.accueilRows || this.props.site.accueil
+    accueilRows = [...accueilRows]  // Shallow copy
+
+    var copieRow = {...accueilRows[idxRow]}
+    copieRow.cards.push({post_id: post_id})
+    accueilRows[idxRow] = copieRow
+
+    this.setState({accueilRows})
+  }
+
+  supprimerRow = event => {
+    const idx = event.currentTarget.value
+    var accueilRows = this.state.accueilRows || this.props.site.accueil
+    accueilRows = [...accueilRows]  // Shallow copy
+    accueilRows = accueilRows.filter((_, idxItem)=>''+idxItem!==idx)
+    this.setState({accueilRows})
+  }
+
+  supprimerColonne = event => {
+    const idxRow = event.currentTarget.value,
+          idxCol = event.currentTarget.dataset.col
+    console.debug("Supprimer row %s / colonne %s", idxRow, idxCol)
+
+    var accueilRows = this.state.accueilRows || this.props.site.accueil
+    accueilRows = [...accueilRows]  // Shallow copy
+    console.debug("Accueil courant : %O", accueilRows)
+
+    var copieRow = {...accueilRows[idxRow]}
+    console.debug("Copie row %O", copieRow)
+    copieRow.cards = copieRow.cards.filter((_, idx)=>''+idx!==idxCol)
+    accueilRows[idxRow] = copieRow
+
+    console.debug("Accueil maj : %O", accueilRows)
+
+    this.setState({accueilRows})
   }
 
   initialiserPost = _ => {
@@ -199,7 +256,7 @@ export default class SectionAccueil extends React.Component {
     var rowsRendered = null
     if(rows) {
       rowsRendered = rows.map((item, idx)=>{
-        const post_id = item.post_id
+        const post_id = item.post_id, layout = item.layout
         if(post_id) {
           var post = this.state.postsModifies[post_id],
               modifiee = true
@@ -210,13 +267,31 @@ export default class SectionAccueil extends React.Component {
           return (
             <RowAccueilPost key={item.post_id}
                             post={post}
+                            rowIdx={idx}
                             modifiee={modifiee}
                             languages={languages}
                             modifierContenuPost={this.modifierContenuPost}
                             editer={this.editerPost}
-                            annuler={this.annulerEditerPost} />
+                            annuler={this.annulerEditerPost}
+                            supprimerRow={this.supprimerRow} />
           )
+        } else if(layout) {
+          if(layout === 'CardDeck') {
+            return <CardDeckLayout key={idx}
+                                   posts={this.state.posts}
+                                   postsModifies={this.state.postsModifies}
+                                   languages={languages}
+                                   modifierContenuPost={this.modifierContenuPost}
+                                   editerPost={this.editerPost}
+                                   annuler={this.annulerEditerPost}
+                                   supprimerRow={this.supprimerRow}
+                                   ajouterColonne={this.ajouterColonne}
+                                   supprimerColonne={this.supprimerColonne}
+                                   rowIdx={idx}
+                                   {...item} />
+          }
         }
+
         return <p key={idx}>Erreur - entree type inconnu</p>
       })
     }
@@ -234,8 +309,11 @@ export default class SectionAccueil extends React.Component {
         {rowsRendered}
         <Row>
           <Col>
-            <Button variant="secondary" onClick={this.ajouterRow}>
+            <Button variant="secondary" onClick={this.ajouterRow} value="Post">
               Ajouter ligne
+            </Button>
+            <Button variant="secondary" onClick={this.ajouterRow} value="CardDeck">
+              Ajouter CarDeck
             </Button>
           </Col>
         </Row>
@@ -246,7 +324,80 @@ export default class SectionAccueil extends React.Component {
 }
 
 function RowAccueilPost(props) {
-  return <PostItem {...props} />
+  var nomPost = ''
+  if(props.post) nomPost = props.post.post_id
+  return (
+    <>
+      <h3>Post {nomPost}</h3>
+      <Row>
+        <Col>
+          <Button onClick={props.supprimerRow} value={props.rowIdx}>Supprimer ligne</Button>
+        </Col>
+      </Row>
+      <PostItem {...props} />
+    </>
+  )
+}
+
+function CardDeckLayout(props) {
+  var cards = props.cards,
+      renderedCards = ''
+  if(cards) renderedCards = cards.map((card, colIdx)=>{
+
+    var cardImage = '', cardTitle = ''
+    if(card.image_url) {
+      cardImage = <Card.Img variant="top" src={card.image_url} />
+    }
+    if(card.titre) {
+      cardTitle = <Card.Title>{card.titre}</Card.Title>
+    }
+    if(card.sous_titre) {
+      cardTitle = <Card.Title>{card.sous_titre}</Card.Title>
+    }
+
+    var renderedPost = '', post = '', modifiee = false
+    var post = props.postsModifies[card.post_id],
+        modifiee = true
+    if(!post) {
+       post = props.posts[card.post_id]
+       modifiee = false
+    }
+    renderedPost = <PostItem {...post} />
+
+    return (
+      <Card key={colIdx} style={{ width: '18rem' }}>
+        {cardImage}
+        <Card.Body>
+          <Card.Header>
+            <Button onClick={props.supprimerColonne} value={props.rowIdx} data-col={colIdx}>X</Button>
+          </Card.Header>
+          {cardTitle}
+          <PostItem key={card.post_id}
+                    post={post}
+                    modifiee={modifiee}
+                    languages={props.languages}
+                    modifierContenuPost={props.modifierContenuPost}
+                    editer={props.editerPost}
+                    annuler={props.annulerEditerPost} />
+
+        </Card.Body>
+      </Card>
+    )
+  })
+
+  return (
+    <>
+      <Row>
+        <Col>
+          <Button onClick={props.ajouterColonne} value={props.rowIdx}>Ajouter colonne</Button>
+          <Button onClick={props.supprimerRow} value={props.rowIdx}>Supprimer ligne</Button>
+        </Col>
+      </Row>
+      <CardDeck>
+        {renderedCards}
+      </CardDeck>
+    </>
+  )
 }
 
 class PostItem extends React.Component {
@@ -276,7 +427,6 @@ class PostItem extends React.Component {
 
     return (
       <>
-        <h3>Post {this.props.post.post_id}</h3>
         <Row>
           <Col>{bouton}</Col>
         </Row>
