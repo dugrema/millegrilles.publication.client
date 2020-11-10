@@ -16,6 +16,8 @@ export default class SectionAccueil extends React.Component {
                        // key=post_id
                        // value=entree post par langue {fr: 'aaa', en:'bbb'}
 
+    idxRowADeplacer: '',  // Index de la ligne a deplacer (couper)
+
     err: '',
     confirmation: '',
   }
@@ -58,7 +60,7 @@ export default class SectionAccueil extends React.Component {
     var typeRow = event.currentTarget.value
 
     var post_id = this.initialiserPost(),
-        position = event.currentTarget.dataset.position || ''
+        position = event.currentTarget.dataset.row || ''
 
     // Type row = post
     var row = null
@@ -73,12 +75,12 @@ export default class SectionAccueil extends React.Component {
     var rows = this.state.accueilRows || this.props.site.accueil
     if(!rows) rows = []
     if(position) {
-      rows = rows.splice(position, 0, row)  // Inserer post dans l'array
-    } else if( ! position ) {
+      rows.splice(Number(position), 0, row)  // Inserer post dans l'array
+    } else {
       rows.push(row)
     }
 
-    this.setState({accueilRows: rows})
+    this.setState({accueilRows: rows, idxRowADeplacer: ''})
   }
 
   ajouterColonne = event => {
@@ -100,7 +102,7 @@ export default class SectionAccueil extends React.Component {
     var accueilRows = this.state.accueilRows || this.props.site.accueil
     accueilRows = [...accueilRows]  // Shallow copy
     accueilRows = accueilRows.filter((_, idxItem)=>''+idxItem!==idx)
-    this.setState({accueilRows})
+    this.setState({accueilRows, idxRowADeplacer: ''})
   }
 
   supprimerColonne = event => {
@@ -249,6 +251,31 @@ export default class SectionAccueil extends React.Component {
     this.setState({postsModifies})
   }
 
+  setIdxRowADeplacer = event => {
+    const idxRowADeplacer = event.currentTarget.value
+    this.setState({idxRowADeplacer})
+  }
+
+  deplacerRow = event => {
+    const idxRowDestination = event.currentTarget.value,
+          idxRowADeplacer = this.state.idxRowADeplacer
+
+    var rowsSource = this.state.accueilRows || this.props.site.accueil
+    var rowCouper = rowsSource[idxRowADeplacer]
+
+    var rowsDestination = []
+    rowsSource.forEach((item,idx) => {
+      if(''+idx === idxRowDestination) {
+        rowsDestination.push(rowCouper)  // Inserer row
+        rowsDestination.push(item)
+      } else if(''+idx !== idxRowADeplacer) {
+        rowsDestination.push(item)  // Conserver row
+      }
+    })
+
+    this.setState({accueilRows: rowsDestination, idxRowADeplacer: ''})
+  }
+
   render() {
     var rows = this.state.accueilRows || this.props.site.accueil
     var languages = this.props.languages
@@ -271,9 +298,13 @@ export default class SectionAccueil extends React.Component {
                             modifiee={modifiee}
                             languages={languages}
                             modifierContenuPost={this.modifierContenuPost}
+                            ajouterRow={this.ajouterRow}
                             editer={this.editerPost}
                             annuler={this.annulerEditerPost}
-                            supprimerRow={this.supprimerRow} />
+                            supprimerRow={this.supprimerRow}
+                            setIdxRowADeplacer={this.setIdxRowADeplacer}
+                            deplacerRow={this.deplacerRow}
+                            idxRowADeplacer={this.state.idxRowADeplacer} />
           )
         } else if(layout) {
           if(layout === 'CardDeck') {
@@ -288,6 +319,10 @@ export default class SectionAccueil extends React.Component {
                                    ajouterColonne={this.ajouterColonne}
                                    supprimerColonne={this.supprimerColonne}
                                    rowIdx={idx}
+                                   ajouterRow={this.ajouterRow}
+                                   setIdxRowADeplacer={this.setIdxRowADeplacer}
+                                   deplacerRow={this.deplacerRow}
+                                   idxRowADeplacer={this.state.idxRowADeplacer}
                                    {...item} />
           }
         }
@@ -331,6 +366,9 @@ function RowAccueilPost(props) {
       <h3>Post {nomPost}</h3>
       <Row>
         <Col>
+          <Button onClick={props.ajouterRow} value='Post' data-row={props.rowIdx}>Inserer ligne</Button>
+          <Button onClick={props.setIdxRowADeplacer} value={props.rowIdx}>Selectionner ligne</Button>
+          <Button onClick={props.deplacerRow} value={props.rowIdx} disabled={!props.idxRowADeplacer}>Coller ligne</Button>
           <Button onClick={props.supprimerRow} value={props.rowIdx}>Supprimer ligne</Button>
         </Col>
       </Row>
@@ -389,6 +427,9 @@ function CardDeckLayout(props) {
     <>
       <Row>
         <Col>
+          <Button onClick={props.ajouterRow} value='Post' data-row={props.rowIdx}>Inserer ligne</Button>
+          <Button onClick={props.setIdxRowADeplacer} value={props.rowIdx}>Selectionner ligne</Button>
+          <Button onClick={props.deplacerRow} value={props.rowIdx} disabled={!props.idxRowADeplacer}>Coller ligne</Button>
           <Button onClick={props.ajouterColonne} value={props.rowIdx}>Ajouter colonne</Button>
           <Button onClick={props.supprimerRow} value={props.rowIdx}>Supprimer ligne</Button>
         </Col>
