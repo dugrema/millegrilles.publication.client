@@ -366,10 +366,10 @@ function RowAccueilPost(props) {
       <h3>Post {nomPost}</h3>
       <Row>
         <Col>
-          <Button onClick={props.ajouterRow} value='Post' data-row={props.rowIdx}>Inserer ligne</Button>
-          <Button onClick={props.setIdxRowADeplacer} value={props.rowIdx}>Selectionner ligne</Button>
-          <Button onClick={props.deplacerRow} value={props.rowIdx} disabled={!props.idxRowADeplacer}>Coller ligne</Button>
-          <Button onClick={props.supprimerRow} value={props.rowIdx}>Supprimer ligne</Button>
+          <Button variant="secondary" onClick={props.ajouterRow} value='Post' data-row={props.rowIdx}>Inserer ligne</Button>
+          <Button variant="secondary" onClick={props.setIdxRowADeplacer} value={props.rowIdx}>Selectionner ligne</Button>
+          <Button variant="secondary" onClick={props.deplacerRow} value={props.rowIdx} disabled={!props.idxRowADeplacer}>Coller ligne</Button>
+          <Button variant="secondary" onClick={props.supprimerRow} value={props.rowIdx}>Supprimer ligne</Button>
         </Col>
       </Row>
       <PostItem {...props} />
@@ -407,7 +407,7 @@ function CardDeckLayout(props) {
         {cardImage}
         <Card.Body>
           <Card.Header>
-            <Button onClick={props.supprimerColonne} value={props.rowIdx} data-col={colIdx}>X</Button>
+            <Button variant="secondary" onClick={props.supprimerColonne} value={props.rowIdx} data-col={colIdx}>X</Button>
           </Card.Header>
           {cardTitle}
           <PostItem key={card.post_id}
@@ -427,11 +427,11 @@ function CardDeckLayout(props) {
     <>
       <Row>
         <Col>
-          <Button onClick={props.ajouterRow} value='Post' data-row={props.rowIdx}>Inserer ligne</Button>
-          <Button onClick={props.setIdxRowADeplacer} value={props.rowIdx}>Selectionner ligne</Button>
-          <Button onClick={props.deplacerRow} value={props.rowIdx} disabled={!props.idxRowADeplacer}>Coller ligne</Button>
-          <Button onClick={props.ajouterColonne} value={props.rowIdx}>Ajouter colonne</Button>
-          <Button onClick={props.supprimerRow} value={props.rowIdx}>Supprimer ligne</Button>
+          <Button variant="secondary" onClick={props.ajouterRow} value='Post' data-row={props.rowIdx}>Inserer ligne</Button>
+          <Button variant="secondary" onClick={props.setIdxRowADeplacer} value={props.rowIdx}>Selectionner ligne</Button>
+          <Button variant="secondary" onClick={props.deplacerRow} value={props.rowIdx} disabled={!props.idxRowADeplacer}>Coller ligne</Button>
+          <Button variant="secondary" onClick={props.ajouterColonne} value={props.rowIdx}>Ajouter colonne</Button>
+          <Button variant="secondary" onClick={props.supprimerRow} value={props.rowIdx}>Supprimer ligne</Button>
         </Col>
       </Row>
       <CardDeck>
