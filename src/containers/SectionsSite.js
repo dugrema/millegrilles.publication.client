@@ -17,9 +17,10 @@ export default class SectionsSite extends React.Component {
   componentDidMount() {
     // Charger collections publiques
     const wsa = this.props.rootProps.websocketApp
-    wsa.requeteCollectionsPubliques().then(collections=>{
+    wsa.requeteCollectionsPubliques().then(reponse=>{
+      const collections = reponse.resultat
       console.debug("Collections publiques : %O", collections)
-      this.setState({collections})
+      this.setState({collectionsPubliques: collections})
     }).catch(err=>{this.setState({err: this.state.err + '\n' + err})})
   }
 
@@ -119,12 +120,14 @@ export default class SectionsSite extends React.Component {
                                   configuration={section}
                                   changerChampMultilingue={this.changerChampMultilingue}
                                   toggleCheckbox={this.toggleCheckbox}
+                                  collectionsPubliques={this.state.collectionsPubliques}
                                   {...this.props} />
         } else if(section.type === 'album') {
           return <SectionAlbum key={idxRow} idxRow={idxRow}
                                configuration={section}
                                changerChampMultilingue={this.changerChampMultilingue}
                                toggleCheckbox={this.toggleCheckbox}
+                               collectionsPubliques={this.state.collectionsPubliques}
                                {...this.props}  />
         } else if(section.type === 'blogposts') {
           return <SectionBlogPosts key={idxRow} idxRow={idxRow}
@@ -187,6 +190,34 @@ function SectionFichiers(props) {
 
   var toutesCollectionsInclues = configuration.toutes_collections?true:false
 
+  var collectionsPubliques = ''
+  if(!toutesCollectionsInclues && props.collectionsPubliques) {
+    collectionsPubliques = props.collectionsPubliques.map(item=>{
+      return (
+        <Row key={item.uuid}>
+          <Col lg={1}></Col>
+          <Col>
+            <Form.Check id={"collections-" + item.uuid} key={item.uuid}
+                        type="checkbox"
+                        label={item.nom_collection}
+                        name="collections"
+                        value={item.uuid}
+                        checked={false}
+                        data-row={idxRow}
+                        onChange={props.toggleCheckbox} />
+          </Col>
+        </Row>
+      )
+    })
+    collectionsPubliques.unshift(
+      <Row key="instructions">
+        <Col>
+          Choisir collections individuellement
+        </Col>
+      </Row>
+    )
+  }
+
   return (
     <>
       <h2>Fichiers</h2>
@@ -199,13 +230,15 @@ function SectionFichiers(props) {
                              changerChamp={props.changerChampMultilingue} />
 
       <h3>Collections inclues</h3>
-      <Form.Check id="collections-toutes"
+      <Form.Check id={"collections-toutes-" + idxRow}
                   type="checkbox"
                   label="Toutes les collections publiques"
                   name="toutes_collections"
                   checked={toutesCollectionsInclues}
                   data-row={idxRow}
                   onChange={props.toggleCheckbox} />
+
+      {collectionsPubliques}
     </>
   )
 
