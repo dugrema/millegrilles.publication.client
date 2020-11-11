@@ -35,12 +35,11 @@ export default class InfoSite extends React.Component {
 
   changerChampMultilingue = event => {
     const {name, value} = event.currentTarget
-    var nomLangue = name.split('_')
-    var nomChamp = nomLangue[0]
-    var langue = nomLangue[1]
+    var langue = event.currentTarget.dataset.langue
+    // console.debug("Changer champ multilingue %s, langue:%s = %s", name, langue, value)
 
-    var valeur = this.state[nomChamp] || this.props.site[nomChamp]
-    this.setState({[nomChamp]: {...valeur, [langue]: value}})
+    var valeur = this.state[name] || this.props.site[name]
+    this.setState({[name]: {...valeur, [langue]: value}})
   }
 
   resetChamps = _ => {
@@ -344,19 +343,23 @@ function TitreSite(props) {
   )
 }
 
-function ChampInputMultilingue(props) {
+export function ChampInputMultilingue(props) {
 
   if( ! props.languages || ! props.values ) return ''
 
   const renderedInput = props.languages.map(langue=>{
-    const nomChamp = props.name + '_' + langue
+    const nomChamp = props.name  // + '_' + langue
 
     return (
       <InputGroup key={langue}>
         <InputGroup.Prepend>
           <InputGroup.Text>{langue}</InputGroup.Text>
         </InputGroup.Prepend>
-        <FormControl name={nomChamp} value={props.values[langue]} onChange={props.changerChamp}/>
+        <FormControl name={nomChamp}
+                     value={props.values[langue]}
+                     data-row={props.idxRow}
+                     data-langue={langue}
+                     onChange={props.changerChamp} />
       </InputGroup>
     )
   })
