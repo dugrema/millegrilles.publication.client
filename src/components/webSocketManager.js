@@ -20,6 +20,10 @@ export class WebSocketPublication extends WebSocketClient {
     return this.emitBlocking('publication/requeteNoeuds', {})
   }
 
+  async requeteCollectionsPubliques() {
+    return this.emitBlocking('publication/requeteCollectionsPubliques', {})
+  }
+
   // Commandes
 
   async majSite(transaction) {

@@ -8,8 +8,19 @@ export default class SectionsSite extends React.Component {
   state = {
     sections: '',
 
+    collectionsPubliques: '',
+
     err: '',
     confirmation: '',
+  }
+
+  componentDidMount() {
+    // Charger collections publiques
+    const wsa = this.props.rootProps.websocketApp
+    wsa.requeteCollectionsPubliques().then(collections=>{
+      console.debug("Collections publiques : %O", collections)
+      this.setState({collections})
+    }).catch(err=>{this.setState({err: this.state.err + '\n' + err})})
   }
 
   ajouterSection = event => {
