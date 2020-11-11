@@ -41,6 +41,32 @@ export default class SectionsSite extends React.Component {
     this.setState({sections})
   }
 
+  toggleCheckbox = event => {
+    const name = event.currentTarget.name
+    const idxRow = event.currentTarget.dataset.row
+    // console.debug("Toggle checkbox %s, row:%s", name, idxRow)
+
+    var sections = this.state.sections || this.props.site.sections
+    sections = [...sections]  // Shallow copy
+
+    // Copier row
+    var row = {...sections[idxRow]}
+    sections[idxRow] = row
+
+    // Copier valeur multilingue, remplacer valeur dans langue appropriee
+    row[name] = row[name]?false:true  // Inverser value, null == false => true
+
+    this.setState({sections})
+  }
+
+  sauvegarder = event => {
+    if(this.state.sections) {
+      console.debug("Sauvegarder : %O", this.state.sections)
+
+    } else {
+      console.debug("Rien a sauvegarder")
+    }
+  }
 
   render() {
 
@@ -53,16 +79,19 @@ export default class SectionsSite extends React.Component {
           return <SectionFichiers key={idxRow} idxRow={idxRow}
                                   configuration={section}
                                   changerChampMultilingue={this.changerChampMultilingue}
+                                  toggleCheckbox={this.toggleCheckbox}
                                   {...this.props} />
         } else if(section.type === 'album') {
           return <SectionAlbum key={idxRow} idxRow={idxRow}
                                configuration={section}
                                changerChampMultilingue={this.changerChampMultilingue}
+                               toggleCheckbox={this.toggleCheckbox}
                                {...this.props}  />
         } else if(section.type === 'blogposts') {
           return <SectionBlogPosts key={idxRow} idxRow={idxRow}
                                    configuration={section}
                                    changerChampMultilingue={this.changerChampMultilingue}
+                                   toggleCheckbox={this.toggleCheckbox}
                                    {...this.props} />
         }
         return <p>Type inconnu : {section.type}</p>
@@ -87,6 +116,12 @@ export default class SectionsSite extends React.Component {
         </Row>
 
         {sectionsRendered}
+
+        <Row>
+          <Col>
+            <Button onClick={this.sauvegarder}>Sauvegarder</Button>
+          </Col>
+        </Row>
       </>
     )
   }
@@ -107,6 +142,8 @@ function SectionFichiers(props) {
     })
   }
 
+  var toutesCollectionsInclues = configuration.toutes_collections?true:false
+
   return (
     <>
       <h2>Fichiers</h2>
@@ -118,12 +155,14 @@ function SectionFichiers(props) {
                              idxRow={idxRow}
                              changerChamp={props.changerChampMultilingue} />
 
-      <h3>Description</h3>
-
       <h3>Collections inclues</h3>
-      <p>
-        Choisir : O Toutes les collections publiques, X Collections selectionnees
-      </p>
+      <Form.Check id="collections-toutes"
+                  type="checkbox"
+                  label="Toutes les collections publiques"
+                  name="toutes_collections"
+                  checked={toutesCollectionsInclues}
+                  data-row={idxRow}
+                  onChange={props.toggleCheckbox} />
     </>
   )
 
