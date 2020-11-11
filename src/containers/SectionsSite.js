@@ -7,6 +7,9 @@ export default class SectionsSite extends React.Component {
 
   state = {
     sections: '',
+
+    err: '',
+    confirmation: '',
   }
 
   ajouterSection = event => {
@@ -59,14 +62,39 @@ export default class SectionsSite extends React.Component {
     this.setState({sections})
   }
 
-  sauvegarder = event => {
+  sauvegarder = async event => {
     if(this.state.sections) {
       console.debug("Sauvegarder : %O", this.state.sections)
 
+      // Conserver changements au formulaire
+      const domaineAction = 'Publication.majSite',
+            transaction = {
+              site_id: this.props.siteId,
+              sections: this.state.sections,
+            }
+
+      try {
+        const signateurTransaction = this.props.rootProps.signateurTransaction
+        await signateurTransaction.preparerTransaction(transaction, domaineAction)
+        console.debug("Maj site %s, Transaction a soumettre : %O", this.props.siteId, transaction)
+
+        const wsa = this.props.rootProps.websocketApp
+        const reponse = await wsa.majSite(transaction)
+
+        this.setState({sections: ''}, _=>{
+          console.debug("MAJ apres update : %O", this.state)
+          this.setState({confirmation: "Mise a jour du site reussie"})
+        })
+      } catch (err) {
+        this.setState({err})
+      }
     } else {
       console.debug("Rien a sauvegarder")
     }
   }
+
+  clearErreur = _ => this.setState({err: ''})
+  clearConfirmation = _ => this.setState({confirmation: ''})
 
   render() {
 
@@ -102,6 +130,9 @@ export default class SectionsSite extends React.Component {
       <>
         <p>Sections</p>
 
+        <AlertErreur err={this.state.err} clearErreur={this.clearErreur} />
+        <AlertConfirmation confirmation={this.state.confirmation} clearConfirmation={this.clearConfirmation} />
+
         <Row>
           <Col lg={1}>
             Ajouter
@@ -119,7 +150,8 @@ export default class SectionsSite extends React.Component {
 
         <Row>
           <Col>
-            <Button onClick={this.sauvegarder}>Sauvegarder</Button>
+            <Button onClick={this.sauvegarder}
+                    disabled={!this.props.rootProps.modeProtege}>Sauvegarder</Button>
           </Col>
         </Row>
       </>
@@ -177,5 +209,23 @@ function SectionAlbum(props) {
 function SectionBlogPosts(props) {
   return (
     <p>Blog Posts</p>
+  )
+}
+
+function AlertErreur(props) {
+  return (
+    <Alert variant="danger" show={props.err !== ''} onClose={props.clearErreur} dismissible>
+      <Alert.Heading>Erreur</Alert.Heading>
+      <pre>{'' + props.err}</pre>
+    </Alert>
+  )
+}
+
+function AlertConfirmation(props) {
+  return (
+    <Alert variant="success" show={props.confirmation !== ''} onClose={props.clearConfirmation} dismissible>
+      <Alert.Heading>Operation completee</Alert.Heading>
+      <pre>{'' + props.confirmation}</pre>
+    </Alert>
   )
 }
