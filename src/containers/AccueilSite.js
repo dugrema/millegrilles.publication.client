@@ -314,7 +314,7 @@ export default class SectionAccueil extends React.Component {
                                    languages={languages}
                                    modifierContenuPost={this.modifierContenuPost}
                                    editerPost={this.editerPost}
-                                   annuler={this.annulerEditerPost}
+                                   annulerEditerPost={this.annulerEditerPost}
                                    supprimerRow={this.supprimerRow}
                                    ajouterColonne={this.ajouterColonne}
                                    supprimerColonne={this.supprimerColonne}
