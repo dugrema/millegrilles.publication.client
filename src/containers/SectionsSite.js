@@ -68,10 +68,37 @@ export default class SectionsSite extends React.Component {
     var row = {...sections[idxRow]}
     sections[idxRow] = row
 
-    // Copier valeur multilingue, remplacer valeur dans langue appropriee
     row[name] = row[name]?false:true  // Inverser value, null == false => true
 
-    this.setState({sections})
+    this.setState({sections}, _=>{console.debug("Status updated : %O", this.state)})
+  }
+
+  toggleListValue = event => {
+    // Toggle le contenu d'un element dans une liste (ajoute ou retire l'element)
+    const {name, value} = event.currentTarget
+    const idxRow = event.currentTarget.dataset.row
+
+    console.debug("Toggle checkbox %s, row:%s = %s", name, idxRow, value)
+
+    var sections = this.state.sections || this.props.site.sections
+    sections = [...sections]  // Shallow copy
+
+    // Copier row
+    var row = {...sections[idxRow]}
+    sections[idxRow] = row
+
+    var list = row[name] || []
+    if(list.includes(value)) {
+      // Retirer la valeur
+      list = list.filter(item=>item!==value)
+    } else {
+      // Ajouter la valeur
+      list.push(value)
+    }
+
+    row[name] = list
+
+    this.setState({sections}, _=>{console.debug("Status updated : %O", this.state)})
   }
 
   sauvegarder = async event => {
@@ -120,6 +147,7 @@ export default class SectionsSite extends React.Component {
                                   configuration={section}
                                   changerChampMultilingue={this.changerChampMultilingue}
                                   toggleCheckbox={this.toggleCheckbox}
+                                  toggleListValue={this.toggleListValue}
                                   collectionsPubliques={this.state.collectionsPubliques}
                                   {...this.props} />
         } else if(section.type === 'album') {
@@ -127,13 +155,13 @@ export default class SectionsSite extends React.Component {
                                configuration={section}
                                changerChampMultilingue={this.changerChampMultilingue}
                                toggleCheckbox={this.toggleCheckbox}
+                               toggleListValue={this.toggleListValue}
                                collectionsPubliques={this.state.collectionsPubliques}
                                {...this.props}  />
         } else if(section.type === 'blogposts') {
           return <SectionBlogPosts key={idxRow} idxRow={idxRow}
                                    configuration={section}
                                    changerChampMultilingue={this.changerChampMultilingue}
-                                   toggleCheckbox={this.toggleCheckbox}
                                    {...this.props} />
         }
         return <p>Type inconnu : {section.type}</p>
@@ -189,6 +217,7 @@ function SectionFichiers(props) {
   }
 
   var toutesCollectionsInclues = configuration.toutes_collections?true:false
+  var collectionsSelectionnees = configuration.collections || []
 
   var collectionsPubliques = ''
   if(!toutesCollectionsInclues && props.collectionsPubliques) {
@@ -202,9 +231,9 @@ function SectionFichiers(props) {
                         label={item.nom_collection}
                         name="collections"
                         value={item.uuid}
-                        checked={false}
+                        checked={collectionsSelectionnees.includes(item.uuid)}
                         data-row={idxRow}
-                        onChange={props.toggleCheckbox} />
+                        onChange={props.toggleListValue} />
           </Col>
         </Row>
       )
