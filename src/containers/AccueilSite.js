@@ -48,7 +48,7 @@ export default class SectionAccueil extends React.Component {
         console.debug("Reponse chargement posts : %O", listePosts)
 
         const posts = {}
-        listePosts.map(item=>{
+        listePosts.liste_posts.map(item=>{
           posts[item.post_id] = item
         })
         this.setState({posts}, _=>{console.debug("Posts charges : %O", posts)})
