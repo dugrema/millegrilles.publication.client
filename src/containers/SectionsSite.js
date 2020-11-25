@@ -181,12 +181,10 @@ export default class SectionsSite extends React.Component {
 
     return (
       <>
-        <p>Sections</p>
-
         <AlertErreur err={this.state.err} clearErreur={this.clearErreur} />
         <AlertConfirmation confirmation={this.state.confirmation} clearConfirmation={this.clearConfirmation} />
 
-        <Row>
+        <Row className="barre-boutons-ajouter">
           <Col lg={1}>
             Ajouter
           </Col>
@@ -259,10 +257,11 @@ function SectionFichiers(props) {
   }
 
   return (
-    <>
+    <div className="section-site">
       <h2>
         Fichiers
         <Button onClick={props.supprimerSection}
+                className="bouton-supprimer-droite"
                 value={idxRow}
                 variant="secondary"
                 disabled={!props.rootProps.modeProtege}>X</Button>
@@ -286,7 +285,7 @@ function SectionFichiers(props) {
 
       {collectionsPubliques}
 
-    </>
+    </div>
   )
 
 }
@@ -336,10 +335,11 @@ function SectionAlbum(props) {
   }
 
   return (
-    <>
+    <div className="section-site">
       <h2>
         Albums
         <Button onClick={props.supprimerSection}
+                className="bouton-supprimer-droite"
                 value={idxRow}
                 variant="secondary"
                 disabled={!props.rootProps.modeProtege}>X</Button>
@@ -362,7 +362,7 @@ function SectionAlbum(props) {
                   onChange={props.toggleCheckbox} />
 
       {collectionsPubliques}
-    </>
+    </div>
   )
 }
 
@@ -381,10 +381,11 @@ function SectionBlogPosts(props) {
   }
 
   return (
-    <>
+    <div className="section-site">
       <h2>
         Blog posts
         <Button onClick={props.supprimerSection}
+                className="bouton-supprimer-droite"
                 value={idxRow}
                 variant="secondary"
                 disabled={!props.rootProps.modeProtege}>X</Button>
@@ -397,7 +398,7 @@ function SectionBlogPosts(props) {
                              idxRow={idxRow}
                              changerChamp={props.changerChampMultilingue} />
 
-    </>
+    </div>
   )
 }
 

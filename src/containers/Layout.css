@@ -68,3 +68,16 @@
 i.protege {
   color: green;
 }
+
+.section-site {
+  padding-bottom: 2em;
+}
+
+.barre-boutons-ajouter {
+  padding-top: 0.5em;
+  padding-bottom: 1em;
+}
+
+.bouton-supprimer-droite {
+  margin-left: 1em;
+}
