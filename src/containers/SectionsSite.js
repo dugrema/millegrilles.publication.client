@@ -274,8 +274,71 @@ function SectionFichiers(props) {
 }
 
 function SectionAlbum(props) {
+  const configuration = props.configuration,
+        idxRow = props.idxRow
+
+  var entete = configuration.entete
+  if(!entete) {
+    // Initialiser entete
+    entete = {}
+    props.languages.forEach(langue=>{
+      entete[langue] = ''
+    })
+  }
+
+  var toutesCollectionsInclues = configuration.toutes_collections?true:false
+  var collectionsSelectionnees = configuration.collections || []
+
+  var collectionsPubliques = ''
+  if(!toutesCollectionsInclues && props.collectionsPubliques) {
+    collectionsPubliques = props.collectionsPubliques.map(item=>{
+      return (
+        <Row key={item.uuid}>
+          <Col lg={1}></Col>
+          <Col>
+            <Form.Check id={"collections-" + item.uuid} key={item.uuid}
+                        type="checkbox"
+                        label={item.nom_collection}
+                        name="collections"
+                        value={item.uuid}
+                        checked={collectionsSelectionnees.includes(item.uuid)}
+                        data-row={idxRow}
+                        onChange={props.toggleListValue} />
+          </Col>
+        </Row>
+      )
+    })
+    collectionsPubliques.unshift(
+      <Row key="instructions">
+        <Col>
+          Choisir collections individuellement
+        </Col>
+      </Row>
+    )
+  }
+
   return (
-    <p>Album</p>
+    <>
+      <h2>Albums</h2>
+
+      <h3>Entete</h3>
+      <ChampInputMultilingue languages={props.languages}
+                             name="entete"
+                             values={entete}
+                             idxRow={idxRow}
+                             changerChamp={props.changerChampMultilingue} />
+
+      <h3>Collections inclues</h3>
+      <Form.Check id={"collections-toutes-" + idxRow}
+                  type="checkbox"
+                  label="Toutes les collections publiques"
+                  name="toutes_collections"
+                  checked={toutesCollectionsInclues}
+                  data-row={idxRow}
+                  onChange={props.toggleCheckbox} />
+
+      {collectionsPubliques}
+    </>
   )
 }
 
