@@ -34,6 +34,14 @@ export default class SectionsSite extends React.Component {
     this.setState({sections})
   }
 
+  supprimerSection = event => {
+    var idxSection = event.currentTarget.value
+    console.debug("Supprimer section idx: %s", idxSection)
+    var sections = this.state.sections || this.props.site.sections || []
+    sections = sections.filter((_, idx)=>''+idx!==idxSection)
+    this.setState({sections})
+  }
+
   changerChampMultilingue = event => {
     const {name, value} = event.currentTarget
     const langue = event.currentTarget.dataset.langue
@@ -149,6 +157,7 @@ export default class SectionsSite extends React.Component {
                                   toggleCheckbox={this.toggleCheckbox}
                                   toggleListValue={this.toggleListValue}
                                   collectionsPubliques={this.state.collectionsPubliques}
+                                  supprimerSection={this.supprimerSection}
                                   {...this.props} />
         } else if(section.type === 'album') {
           return <SectionAlbum key={idxRow} idxRow={idxRow}
@@ -157,11 +166,13 @@ export default class SectionsSite extends React.Component {
                                toggleCheckbox={this.toggleCheckbox}
                                toggleListValue={this.toggleListValue}
                                collectionsPubliques={this.state.collectionsPubliques}
+                               supprimerSection={this.supprimerSection}
                                {...this.props}  />
         } else if(section.type === 'blogposts') {
           return <SectionBlogPosts key={idxRow} idxRow={idxRow}
                                    configuration={section}
                                    changerChampMultilingue={this.changerChampMultilingue}
+                                   supprimerSection={this.supprimerSection}
                                    {...this.props} />
         }
         return <p>Type inconnu : {section.type}</p>
@@ -249,7 +260,13 @@ function SectionFichiers(props) {
 
   return (
     <>
-      <h2>Fichiers</h2>
+      <h2>
+        Fichiers
+        <Button onClick={props.supprimerSection}
+                value={idxRow}
+                variant="secondary"
+                disabled={!props.rootProps.modeProtege}>X</Button>
+      </h2>
 
       <h3>Entete</h3>
       <ChampInputMultilingue languages={props.languages}
@@ -268,6 +285,7 @@ function SectionFichiers(props) {
                   onChange={props.toggleCheckbox} />
 
       {collectionsPubliques}
+
     </>
   )
 
@@ -319,7 +337,13 @@ function SectionAlbum(props) {
 
   return (
     <>
-      <h2>Albums</h2>
+      <h2>
+        Albums
+        <Button onClick={props.supprimerSection}
+                value={idxRow}
+                variant="secondary"
+                disabled={!props.rootProps.modeProtege}>X</Button>
+      </h2>
 
       <h3>Entete</h3>
       <ChampInputMultilingue languages={props.languages}
@@ -358,7 +382,13 @@ function SectionBlogPosts(props) {
 
   return (
     <>
-      <h2>Blog posts</h2>
+      <h2>
+        Blog posts
+        <Button onClick={props.supprimerSection}
+                value={idxRow}
+                variant="secondary"
+                disabled={!props.rootProps.modeProtege}>X</Button>
+      </h2>
 
       <h3>Entete</h3>
       <ChampInputMultilingue languages={props.languages}
