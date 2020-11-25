@@ -554,6 +554,11 @@ function AlertConfirmation(props) {
 }
 
 function getListePosts(state, props) {
+  // Charge la liste des posts a partir d'une des sources suivantes :
+  //  1. Edition (state)
+  //  2. Section si mode d'edition de blog posts
+  //  3. Accueil
+  
   // console.debug("getListePosts state:%O\nprops:%O", state, props)
   if(props.idxSection) {
     return state.accueilRows || props.sections[props.idxSection].posts
