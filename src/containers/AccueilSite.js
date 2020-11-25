@@ -27,7 +27,16 @@ export default class SectionAccueil extends React.Component {
   }
 
   async extraireListePosts() {
-    const accueilInfo = this.props.site.accueil
+
+    var accueilInfo = ''
+    if(this.props.idxSection) {
+      accueilInfo = this.props.sections[this.props.idxSection].posts
+    } else {
+      accueilInfo = this.props.site.accueil
+    }
+
+    console.debug("Liste posts a charger : %O", accueilInfo)
+
     if( accueilInfo ) {
       const listePostIds = []
       accueilInfo.forEach(item=>{
@@ -72,7 +81,7 @@ export default class SectionAccueil extends React.Component {
       throw new Error("Type layout inconnu : " + typeRow)
     }
 
-    var rows = this.state.accueilRows || this.props.site.accueil
+    var rows = getListePosts(this.state, this.props)
     if(!rows) rows = []
     if(position) {
       rows.splice(Number(position), 0, row)  // Inserer post dans l'array
@@ -87,7 +96,7 @@ export default class SectionAccueil extends React.Component {
     const idxRow = event.currentTarget.value
     console.debug("Ajouter colonne sur row %s", idxRow)
     var post_id = this.initialiserPost()
-    var accueilRows = this.state.accueilRows || this.props.site.accueil
+    var accueilRows = getListePosts(this.state, this.props)
     accueilRows = [...accueilRows]  // Shallow copy
 
     var copieRow = {...accueilRows[idxRow]}
@@ -99,7 +108,7 @@ export default class SectionAccueil extends React.Component {
 
   supprimerRow = event => {
     const idx = event.currentTarget.value
-    var accueilRows = this.state.accueilRows || this.props.site.accueil
+    var accueilRows = getListePosts(this.state, this.props)
     accueilRows = [...accueilRows]  // Shallow copy
     accueilRows = accueilRows.filter((_, idxItem)=>''+idxItem!==idx)
     this.setState({accueilRows, idxRowADeplacer: ''})
@@ -110,7 +119,7 @@ export default class SectionAccueil extends React.Component {
           idxCol = event.currentTarget.dataset.col
     console.debug("Supprimer row %s / colonne %s", idxRow, idxCol)
 
-    var accueilRows = this.state.accueilRows || this.props.site.accueil
+    var accueilRows = getListePosts(this.state, this.props)
     accueilRows = [...accueilRows]  // Shallow copy
     console.debug("Accueil courant : %O", accueilRows)
 
@@ -192,8 +201,15 @@ export default class SectionAccueil extends React.Component {
       const domaineAction = 'Publication.majSite',
             transaction = {
               site_id: this.props.siteId,
-              accueil: this.state.accueilRows,
             }
+
+      if(this.props.idxSection) {
+        var sections = this.props.sections
+        sections[this.props.idxSection].posts = this.state.accueilRows
+        transaction.sections = sections
+      } else {
+        transaction.accueil = this.state.accueilRows
+      }
 
       try {
         await signateurTransaction.preparerTransaction(transaction, domaineAction)
@@ -260,7 +276,7 @@ export default class SectionAccueil extends React.Component {
     const idxRowDestination = event.currentTarget.value,
           idxRowADeplacer = this.state.idxRowADeplacer
 
-    var rowsSource = this.state.accueilRows || this.props.site.accueil
+    var rowsSource = getListePosts(this.state, this.props)
     var rowCouper = rowsSource[idxRowADeplacer]
 
     var rowsDestination = []
@@ -277,7 +293,7 @@ export default class SectionAccueil extends React.Component {
   }
 
   render() {
-    var rows = this.state.accueilRows || this.props.site.accueil
+    var rows = getListePosts(this.state, this.props)
     var languages = this.props.languages
 
     var rowsRendered = null
@@ -535,4 +551,13 @@ function AlertConfirmation(props) {
       <pre>{props.message}</pre>
     </Alert>
   )
+}
+
+function getListePosts(state, props) {
+  // console.debug("getListePosts state:%O\nprops:%O", state, props)
+  if(props.idxSection) {
+    return state.accueilRows || props.sections[props.idxSection].posts
+  } else {
+    return state.accueilRows || props.site.accueil
+  }
 }

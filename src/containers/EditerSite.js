@@ -10,8 +10,6 @@ const routingKeysSite = [
   'transaction.Publication.majSite',
 ]
 
-const sections = {InfoSite, AccueilSite, SectionsSite}
-
 export default class EditerSite extends React.Component {
 
   state = {
@@ -71,7 +69,7 @@ export default class EditerSite extends React.Component {
     return (
       <>
         <h1>Editer {nomSite}</h1>
-        <NavSections changerSection={this.changerSection} />
+        <NavSections changerSection={this.changerSection} site={this.state.site}/>
         <SectionCourante changerSection={this.changerSection}
                          languages={this.state.site.languages}
                          {...this.state} {...this.props} />
@@ -82,6 +80,12 @@ export default class EditerSite extends React.Component {
 }
 
 function NavSections(props) {
+
+  var sectionsBlogs = ''
+  if(props.site && props.site.sections) {
+    sectionsBlogs = props.site.sections.filter(item=>item.type === 'blogposts')
+  }
+
   return (
     <Nav variant="pills" defaultActiveKey="InfoSite" onSelect={props.changerSection}>
       <Nav.Item>
@@ -99,6 +103,67 @@ function NavSections(props) {
           Sections additionnelles
         </Nav.Link>
       </Nav.Item>
+      <Nav.Item>
+        <Nav.Link disabled={sectionsBlogs.length === 0} eventKey="SectionsBlogs">
+          Sections blogs
+        </Nav.Link>
+      </Nav.Item>
     </Nav>
   )
 }
+
+class SectionsBlogs extends React.Component {
+
+  state = {
+    idxSection: '',
+  }
+
+  setIdxSection = event => {
+    const idxSection = event.currentTarget.value
+    console.debug("Idx section : %s", idxSection)
+    this.setState({idxSection})
+  }
+
+  render() {
+    const site = this.props.site,
+          sections = site.sections
+
+    const sectionsBlogs = sections.map((item, idx)=>{return {...item, idxSection: idx}}).
+                                   filter(item=>item.type === 'blogposts')
+
+    const mapping = sectionsBlogs.map(item=>{
+      return (
+        <option value={item.idxSection}>{item.entete.fr}</option>
+      )
+    })
+
+    const selectionSections = (
+      <Form.Group controlId="section">
+        <Form.Label>Section de blog</Form.Label>
+        <Form.Control as="select" onChange={this.setIdxSection}>
+          <option value="">Choisir section / Choose section</option>
+          {mapping}
+        </Form.Control>
+      </Form.Group>
+    )
+    console.debug("SectionsBlogs : %O", sectionsBlogs)
+
+    var sectionBlog = ''
+    if(this.state.idxSection) {
+      const section = this.props.site.sections[this.state.idxSection]
+      sectionBlog = <AccueilSite {...this.props}
+                                 sections={this.props.site.sections}
+                                 idxSection={this.state.idxSection} />
+    }
+
+    return (
+      <>
+        {selectionSections}
+        {sectionBlog}
+      </>
+    )
+  }
+
+}
+
+const sections = {InfoSite, AccueilSite, SectionsSite, SectionsBlogs}
