@@ -343,8 +343,31 @@ function SectionAlbum(props) {
 }
 
 function SectionBlogPosts(props) {
+
+  const configuration = props.configuration,
+        idxRow = props.idxRow
+
+  var entete = configuration.entete
+  if(!entete) {
+    // Initialiser entete
+    entete = {}
+    props.languages.forEach(langue=>{
+      entete[langue] = ''
+    })
+  }
+
   return (
-    <p>Blog Posts</p>
+    <>
+      <h2>Blog posts</h2>
+
+      <h3>Entete</h3>
+      <ChampInputMultilingue languages={props.languages}
+                             name="entete"
+                             values={entete}
+                             idxRow={idxRow}
+                             changerChamp={props.changerChampMultilingue} />
+
+    </>
   )
 }
 
