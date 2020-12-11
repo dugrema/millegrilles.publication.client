@@ -6,8 +6,8 @@ import { VerificationInfoServeur } from './Authentification'
 import { MenuItems } from './Menu'
 
 import {getCertificats, getClesPrivees} from '../components/pkiHelper'
-import {SignateurTransactionSubtle} from 'millegrilles.common/lib/cryptoSubtle'
-import {splitPEMCerts} from 'millegrilles.common/lib/forgecommon'
+import {SignateurTransactionSubtle} from '@dugrema/millegrilles.common/lib/cryptoSubtle'
+import {splitPEMCerts} from '@dugrema/millegrilles.common/lib/forgecommon'
 
 import ListeSites from './ListeSites'
 import EditerSite from './EditerSite'

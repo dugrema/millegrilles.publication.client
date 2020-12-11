@@ -1,4 +1,4 @@
-import {WebSocketClient} from 'millegrilles.common/lib/webSocketClient'
+import {WebSocketClient} from '@dugrema/millegrilles.common/lib/webSocketClient'
 
 export class WebSocketPublication extends WebSocketClient {
 

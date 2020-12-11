@@ -1,8 +1,9 @@
 {
   "name": "publication-client",
-  "version": "1.35.0",
+  "version": "1.36.0",
   "private": true,
   "dependencies": {
+    "@dugrema/millegrilles.common": "git+ssh://git.maceroc.com/git/millegrilles.common.nodejs#1.36",
     "@webauthn/client": "^0.1.2",
     "@wojtekmaj/react-daterange-picker": "^2.5.0",
     "axios": "^0.19.2",
@@ -13,7 +14,6 @@
     "i18next-browser-languagedetector": "^4.1.1",
     "idb": "^5.0.6",
     "jquery": "^3.5.1",
-    "millegrilles.common": "git+ssh://git.maceroc.com/git/millegrilles.common.nodejs#1.35",
     "moment": "^2.25.3",
     "moment-timezone": "^0.5.28",
     "popper.js": "^1.16.1",

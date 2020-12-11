@@ -1,7 +1,7 @@
 import { openDB } from 'idb'
 import stringify from 'json-stable-stringify'
 
-import { MilleGrillesCryptoHelper, CryptageAsymetrique, genererAleatoireBase64, str2ab } from 'millegrilles.common/lib/cryptoSubtle'
+import { MilleGrillesCryptoHelper, CryptageAsymetrique, genererAleatoireBase64, str2ab } from '@dugrema/millegrilles.common/lib/cryptoSubtle'
 
 export async function signerChallenge(usager, challengeJson) {
 

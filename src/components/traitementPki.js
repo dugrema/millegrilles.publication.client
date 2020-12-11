@@ -1,4 +1,4 @@
-import {extraireInformationCertificat, validerChaineCertificats} from 'millegrilles.common/lib/forgecommon'
+import {extraireInformationCertificat, validerChaineCertificats} from '@dugrema/millegrilles.common/lib/forgecommon'
 
 export function verifierChaineCertificats(chainePEM) {
   // Verifie la chaine de certificats et retourne les details du certificat
