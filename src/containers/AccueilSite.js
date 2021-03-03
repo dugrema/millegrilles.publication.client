@@ -165,8 +165,9 @@ export default class SectionAccueil extends React.Component {
 
   sauvegarder = async event => {
 
-    const signateurTransaction = this.props.rootProps.signateurTransaction
-    const wsa = this.props.rootProps.websocketApp
+    // const signateurTransaction = this.props.rootProps.signateurTransaction
+    // const wsa = this.props.rootProps.websocketApp
+    const {webWorker, websocketApp: wsa} = this.props.rootProps
 
     // Sauvegarder les nouveaux posts
     if(this.state.postsModifies) {
@@ -174,10 +175,10 @@ export default class SectionAccueil extends React.Component {
         for(const post_id in this.state.postsModifies) {
           const post = this.state.postsModifies[post_id]
 
-          const domaineAction = 'Publication.majPost',
-                transaction = {...post}
+          const domaineAction = 'Publication.majPost'
+          var transaction = {...post}
 
-          await signateurTransaction.preparerTransaction(transaction, domaineAction)
+          transaction = await webWorker.formatterMessage(transaction, domaineAction)
           console.debug("Nouveau post %s, Transaction a soumettre : %O", post_id, transaction)
           const reponse = await wsa.majPost(transaction)
           console.debug("Reponse maj post : %O", reponse)
@@ -198,10 +199,10 @@ export default class SectionAccueil extends React.Component {
 
     if(this.state.accueilRows) {
 
-      const domaineAction = 'Publication.majSite',
-            transaction = {
-              site_id: this.props.siteId,
-            }
+      const domaineAction = 'Publication.majSite'
+      var transaction = {
+            site_id: this.props.siteId,
+          }
 
       if(this.props.idxSection) {
         var sections = this.props.sections
@@ -212,7 +213,8 @@ export default class SectionAccueil extends React.Component {
       }
 
       try {
-        await signateurTransaction.preparerTransaction(transaction, domaineAction)
+        // await signateurTransaction.preparerTransaction(transaction, domaineAction)
+        transaction = await webWorker.formatterMessage(transaction, domaineAction)
         console.debug("Maj site %s, Transaction a soumettre : %O", this.props.siteId, transaction)
 
         const reponse = await wsa.majSite(transaction)
@@ -558,7 +560,7 @@ function getListePosts(state, props) {
   //  1. Edition (state)
   //  2. Section si mode d'edition de blog posts
   //  3. Accueil
-  
+
   // console.debug("getListePosts state:%O\nprops:%O", state, props)
   if(props.idxSection) {
     return state.accueilRows || props.sections[props.idxSection].posts

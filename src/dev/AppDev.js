@@ -2,8 +2,15 @@ import React from 'react'
 import { Container, Row, Col, Nav, Navbar } from 'react-bootstrap'
 import openSocket from 'socket.io-client'
 
+import {wrap as comlinkWrap, releaseProxy} from 'comlink'
+import {getCertificats, getClesPrivees} from '../components/pkiHelper'
+import {splitPEMCerts} from '@dugrema/millegrilles.common/lib/forgecommon'
+
 // import { WebSocketManager } from 'millegrilles.common/lib/webSocketManager'
 import { Trans } from 'react-i18next';
+
+/* eslint-disable import/no-webpack-loader-syntax */
+import WebWorker from 'worker-loader!@dugrema/millegrilles.common/lib/browser/chiffrage.worker'
 
 // import {ConnexionWebsocket} from '../containers/Authentification'
 import {ApplicationPublication} from '../containers/App'
@@ -17,6 +24,36 @@ import manifest from '../manifest.build.js'
 //   version: "DUMMY",
 // }
 
+const NOM_USAGER_PROPRIETAIRE = 'proprietaire'
+
+async function initWorker() {
+  const worker = new WebWorker()
+  const proxy = comlinkWrap(worker)
+
+  const certInfo = await getCertificats(NOM_USAGER_PROPRIETAIRE)
+  if(certInfo && certInfo.fullchain) {
+    const fullchain = splitPEMCerts(certInfo.fullchain)
+    const clesPrivees = await getClesPrivees(NOM_USAGER_PROPRIETAIRE)
+
+    // Initialiser le CertificateStore
+    await proxy.initialiserCertificateStore([...fullchain].pop(), {isPEM: true, DEBUG: false})
+    console.debug("Certificat : %O, Cles privees : %O", certInfo.fullchain, clesPrivees)
+
+    // Initialiser web worker
+    await proxy.initialiserFormatteurMessage({
+      certificatPem: certInfo.fullchain,
+      clePriveeSign: clesPrivees.signer,
+      clePriveeDecrypt: clesPrivees.dechiffrer,
+      DEBUG: false
+    })
+
+  } else {
+    throw new Error("Pas de cert charge")
+  }
+
+  return {worker, proxy}
+}
+
 export class AppDev extends React.Component {
 
   state = {
@@ -24,6 +61,24 @@ export class AppDev extends React.Component {
     modeProtege: false,         // Mode par defaut est lecture seule (prive)
     sousMenuApplication: null,
     connexionSocketIo: null,
+
+    webWorker: '',
+    webWorkerInstance: '',
+  }
+
+  componentDidMount() {
+    initWorker()
+      .then(({worker, proxy}) => {
+        this.setState({webWorkerInstance: worker, webWorker: proxy})
+      })
+  }
+
+  componentWillUnmount() {
+    if(this.state.webWorker) {
+      console.debug("Nettoyage worker, release proxy")
+      this.state.webWorker[releaseProxy]()
+      this.state.webWorkerInstance.terminate()
+    }
   }
 
   setSousMenuApplication = sousMenuApplication => {

@@ -6,7 +6,7 @@ import { VerificationInfoServeur } from './Authentification'
 import { MenuItems } from './Menu'
 
 import {getCertificats, getClesPrivees} from '../components/pkiHelper'
-import {SignateurTransactionSubtle} from '@dugrema/millegrilles.common/lib/cryptoSubtle'
+// import {SignateurTransactionSubtle} from '@dugrema/millegrilles.common/lib/cryptoSubtle'
 import {splitPEMCerts} from '@dugrema/millegrilles.common/lib/forgecommon'
 
 import ListeSites from './ListeSites'
@@ -36,7 +36,7 @@ export class ApplicationPublication extends React.Component {
     hebergement: false,
 
     websocketApp: '',
-    signateurTransaction: '',
+    // signateurTransaction: '',
 
     siteId: '',  // Site en cours de modification
     err: '',
@@ -60,15 +60,15 @@ export class ApplicationPublication extends React.Component {
         />
     )
 
-    new Promise(async (resolve, reject) => {
-      const certInfo = await getCertificats('proprietaire')
-      // console.debug("Cert info : %O", certInfo)
-      const fullchain = splitPEMCerts(certInfo.fullchain)
-      const clesPrivees = await getClesPrivees('proprietaire')
-      // console.debug("Certificat chargement signateur transaction\ncerts: %O\ncles: %O", fullchain, clesPrivees)
-      const signateurTransaction = new SignateurTransactionSubtle(fullchain, clesPrivees.signer)
-      this.setState({signateurTransaction})
-    })
+    // new Promise(async (resolve, reject) => {
+    //   const certInfo = await getCertificats('proprietaire')
+    //   // console.debug("Cert info : %O", certInfo)
+    //   const fullchain = splitPEMCerts(certInfo.fullchain)
+    //   const clesPrivees = await getClesPrivees('proprietaire')
+    //   // console.debug("Certificat chargement signateur transaction\ncerts: %O\ncles: %O", fullchain, clesPrivees)
+    //   const signateurTransaction = new SignateurTransactionSubtle(fullchain, clesPrivees.signer)
+    //   this.setState({signateurTransaction})
+    // })
 
   }
 
@@ -89,12 +89,14 @@ export class ApplicationPublication extends React.Component {
 
   creerSite = async _ => {
     console.debug("Creer nouveau site")
-    const domaineAction = 'Publication.majSite',
-          transaction = {}
+    const domaineAction = 'Publication.majSite'
+    var transaction = {}
 
     // Signer transaction, soumettre
-    const signateurTransaction = this.state.signateurTransaction
-    await signateurTransaction.preparerTransaction(transaction, domaineAction)
+    //const signateurTransaction = this.state.signateurTransaction
+    const webWorker = this.props.rootProps.webWorker
+    //await signateurTransaction.preparerTransaction(transaction, domaineAction)
+    transaction = await webWorker.formatterMessage(transaction, domaineAction)
     const siteId = transaction['en-tete']['uuid_transaction']
     console.debug("Nouveau site %s, Transaction a soumettre : %O", siteId, transaction)
 

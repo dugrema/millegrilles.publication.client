@@ -1,12 +1,13 @@
 {
   "name": "publication-client",
-  "version": "1.37.0",
+  "version": "1.39.0",
   "private": true,
   "dependencies": {
-    "@dugrema/millegrilles.common": "git+ssh://git.maceroc.com/git/millegrilles.common.nodejs#1.37",
+    "@dugrema/millegrilles.common": "git+ssh://git.maceroc.com/git/millegrilles.common.nodejs#1.39",
     "@wojtekmaj/react-daterange-picker": "^2.5.0",
     "axios": "^0.19.2",
     "bootstrap": "^4.5.3",
+    "comlink": "^4.3.0",
     "font-awesome": "^4.7.0",
     "html-react-parser": "^0.14.3",
     "i18next": "^19.4.4",
@@ -51,5 +52,8 @@
     ]
   },
   "proxy": "https://localhost:3023",
-  "homepage": "/publication"
+  "homepage": "/publication",
+  "devDependencies": {
+    "worker-loader": "^3.0.8"
+  }
 }

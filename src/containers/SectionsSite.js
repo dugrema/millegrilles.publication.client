@@ -114,15 +114,17 @@ export default class SectionsSite extends React.Component {
       console.debug("Sauvegarder : %O", this.state.sections)
 
       // Conserver changements au formulaire
-      const domaineAction = 'Publication.majSite',
-            transaction = {
-              site_id: this.props.siteId,
-              sections: this.state.sections,
-            }
+      const domaineAction = 'Publication.majSite'
+      var transaction = {
+            site_id: this.props.siteId,
+            sections: this.state.sections,
+          }
 
       try {
-        const signateurTransaction = this.props.rootProps.signateurTransaction
-        await signateurTransaction.preparerTransaction(transaction, domaineAction)
+        // const signateurTransaction = this.props.rootProps.signateurTransaction
+        // await signateurTransaction.preparerTransaction(transaction, domaineAction)
+        const webWorker = this.props.rootProps.webWorker
+        transaction = await webWorker.formatterMessage(transaction, domaineAction)
         console.debug("Maj site %s, Transaction a soumettre : %O", this.props.siteId, transaction)
 
         const wsa = this.props.rootProps.websocketApp

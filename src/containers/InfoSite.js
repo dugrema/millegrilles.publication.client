@@ -135,8 +135,8 @@ export default class InfoSite extends React.Component {
     console.debug("Sauvegarder changements formulaire site")
 
     // Conserver changements au formulaire
-    const domaineAction = 'Publication.majSite',
-          transaction = {}
+    const domaineAction = 'Publication.majSite'
+    var transaction = {}
 
     const champsFormulaire = ['nom_site', 'languages', 'noeuds_urls', 'titre']
 
@@ -152,8 +152,10 @@ export default class InfoSite extends React.Component {
     transaction['site_id'] = this.props.siteId
 
     try {
-      const signateurTransaction = this.props.rootProps.signateurTransaction
-      await signateurTransaction.preparerTransaction(transaction, domaineAction)
+      // const signateurTransaction = this.props.rootProps.signateurTransaction
+      // await signateurTransaction.preparerTransaction(transaction, domaineAction)
+      const webWorker = this.props.rootProps.webWorker
+      transaction = await webWorker.formatterMessage(transaction, domaineAction)
       const siteId = transaction['en-tete']['uuid_transaction']
       console.debug("Maj site %s, Transaction a soumettre : %O", siteId, transaction)
 
